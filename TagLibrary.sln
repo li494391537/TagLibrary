@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2037
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagLibrary", "TagLibrary\TagLibrary.csproj", "{9638A851-BE2C-473B-AF66-B8B3E811206D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9638A851-BE2C-473B-AF66-B8B3E811206D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9638A851-BE2C-473B-AF66-B8B3E811206D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9638A851-BE2C-473B-AF66-B8B3E811206D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9638A851-BE2C-473B-AF66-B8B3E811206D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38413F90-1E63-4475-8626-8530722E85DC}
+	EndGlobalSection
+EndGlobal
