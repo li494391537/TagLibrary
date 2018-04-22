@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="Lirui.TagLibrary.UserControls.TagTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Lirui.TagLibrary.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <TreeView x:Name="tagTree" ContextMenuOpening="TagTree_ContextMenuOpening">
+            <TreeView.ContextMenu>
+                <ContextMenu x:Name="tagTreeContextMenu">
+                    <MenuItem Header="添加标签" Click="ContextMenuAddTag_Click"/>
+                    <Separator />
+                    <MenuItem Header="全部选择" Click="ContextMenuCheckAll_Click"/>
+                    <MenuItem Header="全选取消" Click="MenuItemUncheckAll_Click"/>
+                    <MenuItem Header="反向选择" Click="ContextMenuInverse_Click"/>
+                    <Separator />
+                    <MenuItem Header="全部折叠" Click="ContextMenuCollapseAll_Click"/>
+                    <MenuItem Header="全部展开" Click="ContextMenuExpandAll_Click"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+    </Grid>
+</UserControl>

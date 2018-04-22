@@ -1,0 +1,124 @@
+﻿<Window x:Class="Lirui.TagLibrary.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Lirui.TagLibrary.Windows"
+        xmlns:usercontrols="clr-namespace:Lirui.TagLibrary.UserControls"
+        xmlns:valueConverter="clr-namespace:Lirui.TagLibrary.ValueConverter"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <!--菜单栏-->
+        <Menu Grid.Row="0" FontSize="14">
+            <MenuItem Header="文件" >
+                <MenuItem Header="添加文件" Click="Menu_File_AddFile_Click"/>
+                <MenuItem Header="关闭" Click="Menu_File_Close_Click"/>
+            </MenuItem>
+            <MenuItem Header="标签">
+                <MenuItem Header="添加标签" Click="Menu_File_AddTag_Click"/>
+            </MenuItem>
+            <MenuItem Header="设置" Click="Menu_File_Settings_Click"/>
+            <MenuItem Header="关于" Click="Menu_File_About_Click"/>
+            <MenuItem Header="测试" Click="Test_Click"/>
+        </Menu>
+
+        <!--主要部分-->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <!--主机列表-->
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Grid.Row="0" Name="hostSelect" DisplayMemberPath="Host" />
+                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <ListView Name="hostList">
+                            <ListView.ContextMenu>
+                                <ContextMenu Name="hostListContextMenu"/>
+                            </ListView.ContextMenu>
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="Host" DisplayMemberBinding="{Binding Path=Host}"/>
+                                        <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Path=Status}"/>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </ScrollViewer>
+                </Grid>
+                <!--Tag列表-->
+                <usercontrols:TagTreeView Grid.Row="1" x:Name="tagTree" BorderBrush="#FF828790" 
+                    TagCheckChanged="TagTree_TagCheckChanged"/>
+
+
+            </Grid>
+
+            <!--文件列表-->
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ListView Name="fileList" BorderBrush="#FF828790" SelectionChanged="FileList_SelectionChanged" ItemsSource="{Binding}">
+                    <ListView.ContextMenu>
+                        <ContextMenu Name="fileListContextMenu">
+                            <MenuItem Header="打开" Click="FileList_ContextMenu_Open_Click"/>
+                            <MenuItem Header="复制到..." Click="FileList_ContextMenu_CopyTo_Click"/>
+                            <MenuItem Header="删除" Click="FileList_ContextMenu_Delete_Click"/>
+                            <Separator />
+                            <MenuItem Header="设置Tag" Click="FileList_ContextMenu_SetTag_Click"/>
+                            <Separator />
+                            <MenuItem Header="全部选择"/>
+                            <MenuItem Header="全选取消"/>
+                            <MenuItem Header="反向选择"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridView.Columns>
+                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}"/>
+                                <GridViewColumn Header="Size">
+                                    <GridViewColumn.DisplayMemberBinding>
+                                        <Binding Path="Size">
+                                            <Binding.Converter>
+                                                <valueConverter:FileSizeValueConverter/>
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </GridViewColumn.DisplayMemberBinding>
+                                </GridViewColumn>
+                            </GridView.Columns>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </ScrollViewer>
+
+            <Grid Grid.Column="2" Background="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Name="test1" />
+                <TextBlock Grid.Row="1" Name="test2" />
+            </Grid>
+        </Grid>
+
+        <!--状态栏-->
+        <StatusBar Grid.Row="2" FontSize="10">
+            <Label Content="Test"/>
+        </StatusBar>
+    </Grid>
+</Window>

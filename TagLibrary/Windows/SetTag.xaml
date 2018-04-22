@@ -1,0 +1,107 @@
+﻿<Window x:Class="Lirui.TagLibrary.Windows.SetTag"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Lirui.TagLibrary.Windows"
+        xmlns:usercontrols="clr-namespace:Lirui.TagLibrary.UserControls"
+        mc:Ignorable="d"
+        Title="SetTag" Height="450" Width="800"
+        Loaded="Window_Loaded">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!--空白-->
+            <ColumnDefinition Width="10"/>
+            <!---->
+            <ColumnDefinition Width="*"/>
+            <!--空白-->
+            <ColumnDefinition Width="10"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <!--空白-->
+            <RowDefinition Height="10"/>
+            <!---->
+            <RowDefinition Height="*"/>
+            <!--空白-->
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <!--Content-->
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <!--文件名-->
+                <RowDefinition Height="auto"/>
+                <!--空白-->
+                <RowDefinition Height="10"/>
+                <!--标签设置-->
+                <RowDefinition Height="*"/>
+                <!--空白-->
+                <RowDefinition Height="10"/>
+                <!--Button-->
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <!--选择文件-->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" FontSize="14">文件名:</Label>
+                <TextBox Name="fileName" Grid.Column="2" MaxLines="1" FontSize="14" IsReadOnly="true"/>
+            </Grid>
+            <!--标签设置-->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <usercontrols:TagTreeView x:Name="tagTreeView" Grid.Column="0" AddingTag="TagTreeView_AddingTag"/>
+
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <!--空白-->
+                        <RowDefinition Height="4*"/>
+                        <!-- -> -->
+                        <RowDefinition Height="auto"/>
+                        <!--空白-->
+                        <RowDefinition Height="*"/>
+                        <!-- + -->
+                        <RowDefinition Height="auto"/>
+                        <!--空白-->
+                        <RowDefinition Height="*"/>
+                        <!-- <- -->
+                        <RowDefinition Height="auto"/>
+                        <!--空白-->
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="1" Click="SelectTag_Click">-&gt;</Button>
+                    <Button Grid.Row="3" Click="AddTag_Click">+</Button>
+                    <Button Grid.Row="5" Click="CancelSelectTag_Click">&lt;-</Button>
+                </Grid>
+
+                <usercontrols:TagTreeView Grid.Column="4" x:Name="tagSelectedTreeView"/>
+            </Grid>
+            <!--按钮-->
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <!--空白-->
+                    <ColumnDefinition Width="*"/>
+                    <!--确认-->
+                    <ColumnDefinition Width="auto"/>
+                    <!--空白-->
+                    <ColumnDefinition Width="20"/>
+                    <!--取消-->
+                    <ColumnDefinition Width="auto"/>
+                    <!--空白-->
+                    <ColumnDefinition Width="20"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1" Padding="8, 2" Click="ButtonOK_Click" FontSize="14">确 认</Button>
+                <Button Grid.Column="3" Padding="8, 2" Click="ButtonCancel_Click" FontSize="14">取 消</Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
