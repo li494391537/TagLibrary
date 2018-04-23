@@ -47,15 +47,38 @@ namespace Lirui.TagLibrary.Windows {
             FileNames = openFileDialog.FileNames;
             //使用插件自动生成Tag
             if (Settings.Default.isUseExtension) {
+                var tmpList = ExtensionUtil.ExtensionType
+                        .Where(item => item.Key.ToUpper() == System.IO.Path.GetExtension(openFileDialog.FileName).TrimStart('.').ToUpper())
+                        .Select(item => item.Value)
+                        .SelectMany(item => {
+                            try {
+                                return (Activator.CreateInstance(item, openFileDialog.FileName) as IExtensionCommon).GetTags();
+                            } catch {
+                                return new List<KeyValuePair<string, string>>() as IEnumerable<KeyValuePair<string, string>>;
+                            }
+                        })
+                        .Select(item => new { Key = System.IO.Path.GetExtension(openFileDialog.FileName).TrimStart('.').ToUpper() + "#" + item.Key, item.Value });
                 foreach (var file in FileNames) {
-                    var tags = ExtensionUtil.ExtensionType
+                    tmpList = ExtensionUtil.ExtensionType
                         .Where(item => item.Key.ToUpper() == System.IO.Path.GetExtension(file).TrimStart('.').ToUpper())
                         .Select(item => item.Value)
-                        .SelectMany(item => (Activator.CreateInstance(item, file) as IExtensionCommon).GetTags())
-                        .Select(item => new TagInfo() { Group = System.IO.Path.GetExtension(file).TrimStart('.').ToUpper() + "#" + item.Key, Name = item.Value })
-                        .ToList();
-                    tagSelectedTreeView.Tags = tags;
+                        .SelectMany(item => {
+                            try {
+                                return (Activator.CreateInstance(item, file) as IExtensionCommon).GetTags();
+                            } catch {
+                                return new List<KeyValuePair<string, string>>() as IEnumerable<KeyValuePair<string, string>>;
+                            }
+                        })
+                        .Select(item => new { Key = System.IO.Path.GetExtension(openFileDialog.FileName).TrimStart('.').ToUpper() + "#" + item.Key, item.Value })
+                        .Join(tmpList, x => (x.Key, x.Value), y => (y.Key, y.Value), (x, y) => x);
+                    //.Select(item => new TagInfo() { Group = System.IO.Path.GetExtension(file).TrimStart('.').ToUpper() + "#" + item.Key, Name = item.Value })
+                    //.ToList();
+                    //tagSelectedTreeView.Tags = tags;
                 }
+                tagSelectedTreeView.Tags = 
+                    tmpList
+                    .Select(item => new TagInfo() { Group = item.Key, Name = item.Value })
+                    .ToList();
             }
         }
 

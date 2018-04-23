@@ -22,7 +22,7 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static CancellationTokenSource cancellationTokenSource;
 
         private static BindingList<HostInfo> hostInfos = new BindingList<HostInfo>();
-        
+
 
         static UdpService() {
             iPAddresses =
@@ -97,8 +97,21 @@ namespace Lirui.TagLibrary.NetworkHelper {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, port);
                 var data = udpClient.Receive(ref endPoint);
                 if (data.Length != 4) continue;
-                var remotePort = BitConverter.ToInt32(data,0);                
-                
+                var remotePort = BitConverter.ToInt32(data, 0);
+
+                //确认是否是来自自己的数据包
+                if (iPAddresses.Where(item => item.IP.ToString() == endPoint.Address.ToString()).Count() != 0) continue;
+
+                //查找该主机是否已经存在于主机列表
+                var result = hostInfos
+                    .Where(item => item.Host.Equals(endPoint.Address.ToString()))
+                    .FirstOrDefault();
+                if (result == null) {
+                    hostInfos.Add(new HostInfo(endPoint.Address.ToString(), "online") { LastOnline = DateTime.UtcNow, Port = remotePort });
+                } else {
+                    result.Status = "online";
+                    result.LastOnline = DateTime.UtcNow;
+                }
 
             }
         }
@@ -109,10 +122,10 @@ namespace Lirui.TagLibrary.NetworkHelper {
 
             byte[] ipByte = ip.GetAddressBytes();
             byte[] maskByte = mask.GetAddressBytes();
-            
+
             byte[] broadcastAddressByte = new byte[4];
             for (int i = 0; i < 4; i++) {
-                broadcastAddressByte[i] = (byte)(ipByte[i] | ~maskByte[i]);
+                broadcastAddressByte[i] = (byte) (ipByte[i] | ~maskByte[i]);
             }
 
             IPAddress broadcastAddress = new IPAddress(broadcastAddressByte);
@@ -121,7 +134,7 @@ namespace Lirui.TagLibrary.NetworkHelper {
         }
 
 
-        public static event EventHandler<ReceivedDataEventArgs> ReceivedData;
+        //public static event EventHandler<ReceivedDataEventArgs> ReceivedData;
     }
 
     class ReceivedDataEventArgs : EventArgs {

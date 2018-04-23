@@ -183,10 +183,6 @@ namespace Lirui.TagLibrary.Windows {
             //db.Deleteable<TagInfo>(item => 1 == 1).ExecuteCommand();
             //db.Deleteable<FileTagMapper>(item => 1 == 1).ExecuteCommand();
             UdpService.StartSendHeartBeat();
-            UdpService.ReceivedData += (_sender, _e) => {
-                MessageBox.Show($"来自: {_e.IPEndPoint.Address.ToString()}, 内容: {_e.Data}");
-
-            };
             UdpService.StartReceive();
         }
 
