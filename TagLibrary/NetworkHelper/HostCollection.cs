@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 namespace Lirui.TagLibrary.NetworkHelper {
     class HostInfo : INotifyPropertyChanged {
-        public string Host { get; }
         private string status;
         public string Status {
             get => status;
@@ -11,7 +11,11 @@ namespace Lirui.TagLibrary.NetworkHelper {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Status"));
             }
         }
-        public HostInfo(string host, string status = "offline") { Host = host; Status = status; }
+        public string Host { get; }
+        public DateTime LastOnline { get; set; }
+        public int Port { get; set; }
+
+        public HostInfo(string host, string status = "offline") { Host = host; Status = status; LastOnline = DateTime.MinValue; }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

@@ -1,13 +1,12 @@
 ﻿using Lirui.TagLibrary.Models;
 using Lirui.TagLibrary.NetworkHelper;
 using Lirui.TagLibrary.UserControls;
-using Lirui.TagLibrary.Utils;
-using Lirui.TagLibrary.ExtensionCommon;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -184,7 +183,11 @@ namespace Lirui.TagLibrary.Windows {
             //db.Deleteable<TagInfo>(item => 1 == 1).ExecuteCommand();
             //db.Deleteable<FileTagMapper>(item => 1 == 1).ExecuteCommand();
             UdpService.StartSendHeartBeat();
-            UdpService.SetBroadcast();
+            UdpService.ReceivedData += (_sender, _e) => {
+                MessageBox.Show($"来自: {_e.IPEndPoint.Address.ToString()}, 内容: {_e.Data}");
+
+            };
+            UdpService.StartReceive();
         }
 
         /// <summary>
