@@ -26,7 +26,7 @@ namespace Lirui.TagLibrary.Windows {
         List<FileInfo> files;
         List<TagInfo> tags;
         List<FileTagMapper> mappers;
-        BindingList<HostInfo> hosts = new BindingList<HostInfo>();
+        //BindingList<HostInfo> hosts = new BindingList<HostInfo>();
 
         /// <summary>
         /// 构造方法
@@ -164,10 +164,20 @@ namespace Lirui.TagLibrary.Windows {
             //初始化映射列表
             mappers = db.Queryable<FileTagMapper>().ToList();
 
-            hostSelect.ItemsSource = hosts;
-            hostList.ItemsSource = hosts;
-            hosts.Add(new HostInfo("localhost"));
-            hostSelect.SelectedIndex = 0;
+            //hostSelect.ItemsSource = hosts;
+            //hosts.Add(new HostInfo("localhost"));
+            hostList.ItemsSource = new BindingList<HostInfo>(UdpService.HostInfos);
+            UdpService.HostListChanged += (o, e) => {
+                hostList.Dispatcher.Invoke(() => {
+                    if (e.IsAdd) {
+                        (hostList.ItemsSource as BindingList<HostInfo>).Add(e.HostInfo);
+                    }else {
+                        (hostList.ItemsSource as BindingList<HostInfo>).Remove(e.HostInfo);
+                    }
+                });
+
+            };
+            //hostSelect.SelectedIndex = 0;
 
             #endregion
 
@@ -182,7 +192,7 @@ namespace Lirui.TagLibrary.Windows {
             //new TextRange(test1.Document.ContentStart, test1.Document.ContentEnd).Text = "";
             //db.Deleteable<TagInfo>(item => 1 == 1).ExecuteCommand();
             //db.Deleteable<FileTagMapper>(item => 1 == 1).ExecuteCommand();
-            //UdpService.StartSendHeartBeat();
+            UdpService.StartSendHeartBeat();
             UdpService.StartReceive();
         }
 
@@ -454,25 +464,25 @@ namespace Lirui.TagLibrary.Windows {
             (fileList.ItemsSource as BindingList<FileInfo>).Remove(fileInfo);
         }
 
-        /// <summary>
-        /// 添加主机
-        /// </summary>
-        /// <param name="host"></param>
-        private void AddHost(string host, string status = "offline") {
-            if (hosts.Where(item => item.Host == host).Count() == 0) {
-                hosts.Add(new HostInfo(host, status));
-            } else {
-                hosts.Where(item => item.Host == host).First().Status = status;
-            }
-        }
+        ///// <summary>
+        ///// 添加主机
+        ///// </summary>
+        ///// <param name="host"></param>
+        //private void AddHost(string host, string status = "offline") {
+        //    if (hosts.Where(item => item.Host == host).Count() == 0) {
+        //        hosts.Add(new HostInfo(host, status));
+        //    } else {
+        //        hosts.Where(item => item.Host == host).First().Status = status;
+        //    }
+        //}
 
-        /// <summary>
-        /// 移除主机
-        /// </summary>
-        /// <param name="host"></param>
-        private void RemoveHost(string host) {
-            hosts.Remove(hosts.Where(item => item.Host == host).First());
-        }
+        ///// <summary>
+        ///// 移除主机
+        ///// </summary>
+        ///// <param name="host"></param>
+        //private void RemoveHost(string host) {
+        //    hosts.Remove(hosts.Where(item => item.Host == host).First());
+        //}
 
         /// <summary>
         /// 添加Tag

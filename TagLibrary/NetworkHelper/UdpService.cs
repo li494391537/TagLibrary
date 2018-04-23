@@ -21,7 +21,11 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static Task task;
         private static CancellationTokenSource cancellationTokenSource;
 
-        private static BindingList<HostInfo> hostInfos = new BindingList<HostInfo>();
+        private static List<HostInfo> hostInfos = new List<HostInfo>() {
+            new HostInfo("localhost", "online")
+        };
+
+        public static List<HostInfo> HostInfos { get => hostInfos; }
 
 
         static UdpService() {
@@ -102,9 +106,9 @@ namespace Lirui.TagLibrary.NetworkHelper {
                 Array.Copy(data, 4, buffer, 0, 4);
                 int remotePort = 0;
                 if (BitConverter.IsLittleEndian) {
-                    remotePort = BitConverter.ToInt32(buffer.Reverse().ToArray(),0);
-                }else {
-                    remotePort = BitConverter.ToInt32(buffer,0);
+                    remotePort = BitConverter.ToInt32(buffer.Reverse().ToArray(), 0);
+                } else {
+                    remotePort = BitConverter.ToInt32(buffer, 0);
                 }
 
                 //确认是否是来自自己的数据包
@@ -115,7 +119,12 @@ namespace Lirui.TagLibrary.NetworkHelper {
                     .Where(item => item.Host.Equals(endPoint.Address.ToString()))
                     .FirstOrDefault();
                 if (result == null) {
-                    hostInfos.Add(new HostInfo(endPoint.Address.ToString(), "online") { LastOnline = DateTime.UtcNow, Port = remotePort });
+                    var hostAdd = new HostInfo(endPoint.Address.ToString(), "online") {
+                        LastOnline = DateTime.UtcNow,
+                        Port = remotePort
+                    };
+                    hostInfos.Add(hostAdd);
+                    HostListChanged?.Invoke(null, new HostListChangedEventArgs(hostAdd, true));
                 } else {
                     result.Status = "online";
                     result.LastOnline = DateTime.UtcNow;
@@ -126,39 +135,41 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static void Send(IPAddress ip, IPAddress mask) {
 
             byte[] buffer = new byte[8];
+            //标识序列：4 bytes
             buffer[0] = 0x10;
             buffer[1] = 0x11;
             buffer[2] = 0x22;
             buffer[3] = 0x23;
+            //发送本地开放端口号(大端序)
             if (BitConverter.IsLittleEndian) {
                 Array.Copy(BitConverter.GetBytes(port).Reverse().ToArray(), 0, buffer, 4, 4);
             } else {
                 Array.Copy(BitConverter.GetBytes(port), 0, buffer, 4, 4);
             }
+
+            //计算广播地址
             byte[] ipByte = ip.GetAddressBytes();
             byte[] maskByte = mask.GetAddressBytes();
-
             byte[] broadcastAddressByte = new byte[4];
             for (int i = 0; i < 4; i++) {
                 broadcastAddressByte[i] = (byte) (ipByte[i] | ~maskByte[i]);
             }
-
             IPAddress broadcastAddress = new IPAddress(broadcastAddressByte);
 
             udpClient.SendAsync(buffer, buffer.Length, new IPEndPoint(broadcastAddress, port));
         }
 
-
+        public static event EventHandler<HostListChangedEventArgs> HostListChanged;
         //public static event EventHandler<ReceivedDataEventArgs> ReceivedData;
     }
 
-    class ReceivedDataEventArgs : EventArgs {
+    class HostListChangedEventArgs : EventArgs {
 
-        public IPEndPoint IPEndPoint { get; }
-        public object Data { get; }
-        public ReceivedDataEventArgs(IPEndPoint iPEndPoint, object data) {
-            IPEndPoint = iPEndPoint;
-            Data = data;
+        public bool IsAdd { get; }
+        public HostInfo HostInfo { get; }
+        public HostListChangedEventArgs(HostInfo hostInfo, bool isAdd) {
+            HostInfo = hostInfo;
+            IsAdd = isAdd;
         }
     }
 
