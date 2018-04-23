@@ -182,7 +182,7 @@ namespace Lirui.TagLibrary.Windows {
             //new TextRange(test1.Document.ContentStart, test1.Document.ContentEnd).Text = "";
             //db.Deleteable<TagInfo>(item => 1 == 1).ExecuteCommand();
             //db.Deleteable<FileTagMapper>(item => 1 == 1).ExecuteCommand();
-            UdpService.StartSendHeartBeat();
+            //UdpService.StartSendHeartBeat();
             UdpService.StartReceive();
         }
 

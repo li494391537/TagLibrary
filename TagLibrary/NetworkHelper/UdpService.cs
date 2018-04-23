@@ -96,8 +96,16 @@ namespace Lirui.TagLibrary.NetworkHelper {
             while (true) {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, port);
                 var data = udpClient.Receive(ref endPoint);
-                if (data.Length != 4) continue;
-                var remotePort = BitConverter.ToInt32(data, 0);
+                if (data.Length != 8) continue;
+                if (!(data[0] == 0x10 && data[1] == 0x11 && data[2] == 0x22 && data[3] == 0x23)) continue;
+                byte[] buffer = new byte[4];
+                Array.Copy(data, 4, buffer, 0, 4);
+                int remotePort = 0;
+                if (BitConverter.IsLittleEndian) {
+                    remotePort = BitConverter.ToInt32(buffer.Reverse().ToArray(),0);
+                }else {
+                    remotePort = BitConverter.ToInt32(buffer,0);
+                }
 
                 //确认是否是来自自己的数据包
                 if (iPAddresses.Where(item => item.IP.ToString() == endPoint.Address.ToString()).Count() != 0) continue;
@@ -112,14 +120,21 @@ namespace Lirui.TagLibrary.NetworkHelper {
                     result.Status = "online";
                     result.LastOnline = DateTime.UtcNow;
                 }
-
             }
         }
 
         private static void Send(IPAddress ip, IPAddress mask) {
 
-            byte[] buffer = BitConverter.GetBytes(port);
-
+            byte[] buffer = new byte[8];
+            buffer[0] = 0x10;
+            buffer[1] = 0x11;
+            buffer[2] = 0x22;
+            buffer[3] = 0x23;
+            if (BitConverter.IsLittleEndian) {
+                Array.Copy(BitConverter.GetBytes(port).Reverse().ToArray(), 0, buffer, 4, 4);
+            } else {
+                Array.Copy(BitConverter.GetBytes(port), 0, buffer, 4, 4);
+            }
             byte[] ipByte = ip.GetAddressBytes();
             byte[] maskByte = mask.GetAddressBytes();
 
