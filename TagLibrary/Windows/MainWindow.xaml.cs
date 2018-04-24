@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -126,6 +127,12 @@ namespace Lirui.TagLibrary.Windows {
                 new HostInfo("localhost", "online")
             });
 
+
+
+
+            #endregion
+
+
             #region 网络部分
             UdpService.HostListChanged += (_sender, _e) => {
                 hostList.Dispatcher.Invoke(() => {
@@ -137,21 +144,23 @@ namespace Lirui.TagLibrary.Windows {
                 });
 
             };
+
+            HttpService.FileInfos = files;
+            HttpService.TagInfos = tags;
+            HttpService.FileTagMappers = mappers;
             if (HttpService.StartHttpService()) {
-                HttpStatus.Content = "服务已开启";
+                httpStatus.Content = "服务已开启, 端口号为：" + HttpService.Port;
+                
             } else {
-                HttpStatus.Content = "服务未开启";
+                httpStatus.Content = "服务未开启";
             }
-            
+
             UdpService.HttpPort = HttpService.Port;
             if (UdpService.StartSendHeartBeat() && UdpService.StartReceive()) {
-                UdpStatus.Content = "服务已开启";
+                udpStatus.Content = "服务已开启";
             } else {
-                UdpStatus.Content = "服务未开启";
+                udpStatus.Content = "服务未开启";
             }
-            #endregion
-
-
             #endregion
 
         }
@@ -647,6 +656,27 @@ namespace Lirui.TagLibrary.Windows {
         #endregion
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
+        }
+
+        private void HostList_Connect_Click(object sender, RoutedEventArgs e) {
+            var selectedHost = hostList.SelectedItem as HostInfo;
+            if (selectedHost.Host == "localhost") return;
+            try {
+                var ip = IPAddress.Parse(selectedHost.Host);
+                var port = selectedHost.Port;
+                var remoteWindow = new RemoteWindow() {
+                    IPAddress = ip,
+                    Port = port
+                };
+                remoteWindow.Downloaded += RemoteWindow_Downloaded;
+                remoteWindow.ShowDialog();
+                remoteWindow.Downloaded -= RemoteWindow_Downloaded;
+
+            } catch { MessageBox.Show("连接失败"); }
+        }
+
+        private void RemoteWindow_Downloaded(object sender, DownloadedEventArgs e) {
+            throw new NotImplementedException();
         }
     }
 }

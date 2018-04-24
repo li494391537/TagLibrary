@@ -21,12 +21,14 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static Task task;
         private static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        private static Regex file = new Regex(@"^\/File\/(?<filename>[0-9a-fA-F]{32,32})\.(?<format>\w{1,7})$");
-        private static Regex fileInfos = new Regex(@"^\/FileInfos$");
-        private static Regex tagInfos = new Regex(@"^\/TagInfos$");
+        private static Regex urlFile = new Regex(@"^\/File\/(?<filename>[0-9a-fA-F]{32,32})\.(?<format>\w{1,7})$");
+        private static Regex urlFileInfos = new Regex(@"^\/FileInfos$");
+        private static Regex urlTagInfos = new Regex(@"^\/TagInfos$");
+        private static Regex fileTagMappers = new Regex(@"^\/FileTagMappers$");
 
-        public static TagInfo[] TagInfos { get; set; }
-        public static Models.FileInfo[] FileInfos { get; set; }
+        public static List<TagInfo> TagInfos { get; set; }
+        public static List<Models.FileInfo> FileInfos { get; set; }
+        public static List<FileTagMapper> FileTagMappers { get; set; }
 
 
         static HttpService() {
@@ -65,25 +67,32 @@ namespace Lirui.TagLibrary.NetworkHelper {
                 var req = context.Request;
                 var res = context.Response;
                 try {
-                    if (file.IsMatch(req.RawUrl)) {
+                    if (urlFile.IsMatch(req.RawUrl)) {
 
-                        var result = file.Match(req.RawUrl);
+                        var result = urlFile.Match(req.RawUrl);
                         var filename = result.Groups["filename"].Value;
                         var format = result.Groups["format"].Value;
                         var fileBytes = File.ReadAllBytes(Environment.CurrentDirectory + @"\library\" + filename + '.' + format);
                         res.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                         res.StatusCode = 200;
 
-                    } else if (tagInfos.IsMatch(req.RawUrl)) {
-                        
-                        var json = JsonConvert.SerializeObject(TagInfos);
+                    } else if (urlTagInfos.IsMatch(req.RawUrl)) {
+
+                        var json = JsonConvert.SerializeObject(TagInfos.ToArray());
                         var jsonBytes = Encoding.UTF8.GetBytes(json);
                         res.OutputStream.Write(jsonBytes, 0, jsonBytes.Length);
                         res.StatusCode = 200;
 
-                    } else if (fileInfos.IsMatch(req.RawUrl)) {
-                        
-                        var json = JsonConvert.SerializeObject(FileInfos);
+                    } else if (urlFileInfos.IsMatch(req.RawUrl)) {
+
+                        var json = JsonConvert.SerializeObject(FileInfos.ToArray());
+                        var jsonBytes = Encoding.UTF8.GetBytes(json);
+                        res.OutputStream.Write(jsonBytes, 0, jsonBytes.Length);
+                        res.StatusCode = 200;
+
+                    } else if (fileTagMappers.IsMatch(req.RawUrl)) {
+
+                        var json = JsonConvert.SerializeObject(FileTagMappers.ToArray());
                         var jsonBytes = Encoding.UTF8.GetBytes(json);
                         res.OutputStream.Write(jsonBytes, 0, jsonBytes.Length);
                         res.StatusCode = 200;
@@ -147,6 +156,22 @@ namespace Lirui.TagLibrary.NetworkHelper {
                 var tagInfos = JsonConvert.DeserializeObject<TagInfo[]>(json);
                 return tagInfos;
             } catch { return null; }
+        }
+
+        public static async Task<FileTagMapper[]> GetMappers(IPAddress ip, int port) {
+            try {
+                var httpClient = new HttpClient();
+                var req = new HttpRequestMessage {
+                    RequestUri = new Uri("http://" + ip.ToString() + ":" + port + "/FileTagMappers")
+                };
+                var res = await httpClient.SendAsync(req);
+                if (!res.IsSuccessStatusCode) return null;
+                var jsonBytes = await res.Content.ReadAsByteArrayAsync();
+                var json = Encoding.UTF8.GetString(jsonBytes);
+                var mappers = JsonConvert.DeserializeObject<FileTagMapper[]>(json);
+                return mappers;
+            } catch { return null; }
+
         }
     }
 }

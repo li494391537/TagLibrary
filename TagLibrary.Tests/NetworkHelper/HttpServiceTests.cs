@@ -16,7 +16,7 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
         [TestMethod()]
         public void GetTagsTest() {
             try {
-                HttpService.TagInfos = new Models.TagInfo[] {
+                HttpService.TagInfos = new List<Models.TagInfo> {
                     new Models.TagInfo() {
                         Id = 1,
                         Group = "Group1",
@@ -31,8 +31,8 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
                 HttpService.StartHttpService();
                 var result = HttpService.GetTags(IPAddress.Parse("127.0.0.1"), HttpService.Port).Result;
                 HttpService.StopHttpService();
-                if (HttpService.TagInfos.Length != result.Length) Assert.Fail();
-                for (int i = 0; i < HttpService.TagInfos.Length; i++) {
+                if (HttpService.TagInfos.Count != result.Length) Assert.Fail();
+                for (int i = 0; i < HttpService.TagInfos.Count; i++) {
                     if (HttpService.TagInfos[i].Id != result[i].Id 
                         || HttpService.TagInfos[i].Group != result[i].Group 
                         || HttpService.TagInfos[i].Name != result[i].Name) {
@@ -66,7 +66,7 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
         [TestMethod()]
         public void GetFilesTest() {
             try {
-                HttpService.FileInfos = new Models.FileInfo[] {
+                HttpService.FileInfos = new List<Models.FileInfo> {
                     new Models.FileInfo() {
                         Id = 1,
                         Name = "Name1"
@@ -81,8 +81,8 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
                 HttpService.StopHttpService();
 
 
-                if (HttpService.FileInfos.Length != result.Length) Assert.Fail();
-                for (int i = 0; i < HttpService.FileInfos.Length; i++) {
+                if (HttpService.FileInfos.Count != result.Length) Assert.Fail();
+                for (int i = 0; i < HttpService.FileInfos.Count; i++) {
                     if (HttpService.FileInfos[i].Id != result[i].Id ||
                         HttpService.FileInfos[i].Name != result[i].Name) {
                         Assert.Fail();

@@ -48,7 +48,9 @@
                     <!--ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"-->
                     <ListView Name="hostList">
                         <ListView.ContextMenu>
-                            <ContextMenu Name="hostListContextMenu"/>
+                            <ContextMenu>
+                                <MenuItem Header="连接" Click="HostList_Connect_Click"/>
+                            </ContextMenu>
                         </ListView.ContextMenu>
                         <ListView.View>
                             <GridView>
@@ -116,12 +118,12 @@
         </Grid>
 
         <!--状态栏-->
-        <StatusBar Grid.Row="2" FontSize="10">
-            <Label Content="UDP服务状态：" Width="100" FontSize="12"/>
-            <Label x:Name="UdpStatus" Width="100" FontSize="12"/>
+        <StatusBar Grid.Row="2" FontSize="12">
+            <Label Content="UDP服务状态: " Width="100" FontSize="12"/>
+            <Label x:Name="udpStatus" MinWidth="100" FontSize="12"/>
             <Separator/>
-            <Label Content="HTTP服务状态" Width="100" FontSize="12"/>
-            <Label x:Name="HttpStatus" Width="100" FontSize="12"/>
+            <Label Content="HTTP服务状态: " Width="100" FontSize="12"/>
+            <Label x:Name="httpStatus" MinWidth="100" FontSize="12"/>
         </StatusBar>
     </Grid>
 </Window>
