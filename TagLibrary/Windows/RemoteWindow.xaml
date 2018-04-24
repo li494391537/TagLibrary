@@ -14,7 +14,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
-        <usercontrols:TagTreeView Grid.Column="0" x:Name="tagTreeView"/>
+        <usercontrols:TagTreeView Grid.Column="0" x:Name="tagTreeView" TagCheckChanged="TagTreeView_TagCheckChanged"/>
         <ListView Grid.Column="1" x:Name="fileListView">
             <ListView.ContextMenu>
                 <ContextMenu>

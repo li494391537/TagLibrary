@@ -55,7 +55,8 @@
                         <ListView.View>
                             <GridView>
                                 <GridView.Columns>
-                                    <GridViewColumn Header="Host" DisplayMemberBinding="{Binding Path=Host}"/>
+                                    <GridViewColumn Header="Host" Width="125"
+                                                    DisplayMemberBinding="{Binding Path=Host}"/>
                                     <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Path=Status}"/>
                                 </GridView.Columns>
                             </GridView>
@@ -83,16 +84,17 @@
                         <Separator />
                         <MenuItem Header="设置Tag" Click="FileList_ContextMenu_SetTag_Click"/>
                         <Separator />
-                        <MenuItem Header="全部选择"/>
-                        <MenuItem Header="全选取消"/>
-                        <MenuItem Header="反向选择"/>
+                        <MenuItem Header="全部选择" Click="MenuItem_Click"/>
+                        <MenuItem Header="全选取消" Click="MenuItem_Click_1"/>
+                        <MenuItem Header="反向选择" Click="MenuItem_Click_2"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>
                     <GridView>
                         <GridView.Columns>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}"/>
-                            <GridViewColumn Header="Size">
+                            <GridViewColumn Header="Name" Width="400"
+                                            DisplayMemberBinding="{Binding Path=Name}"/>
+                            <GridViewColumn Header="Size" Width="100">
                                 <GridViewColumn.DisplayMemberBinding>
                                     <Binding Path="Size">
                                         <Binding.Converter>

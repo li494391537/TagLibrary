@@ -150,7 +150,7 @@ namespace Lirui.TagLibrary.Windows {
             HttpService.FileTagMappers = mappers;
             if (HttpService.StartHttpService()) {
                 httpStatus.Content = "服务已开启, 端口号为：" + HttpService.Port;
-                
+
             } else {
                 httpStatus.Content = "服务未开启";
             }
@@ -168,11 +168,11 @@ namespace Lirui.TagLibrary.Windows {
         #region 菜单栏事件处理方法
 
         private void Test_Click(object sender, RoutedEventArgs e) {
-            //new TextRange(test1.Document.ContentStart, test1.Document.ContentEnd).Text = "";
-            //db.Deleteable<TagInfo>(item => 1 == 1).ExecuteCommand();
-            //db.Deleteable<FileTagMapper>(item => 1 == 1).ExecuteCommand();
-            UdpService.StartSendHeartBeat();
-            UdpService.StartReceive();
+            List<int> i = new List<int>() { 1, 2, 5, 3, 4 };
+            BindingList<int> j = new BindingList<int>(i.ToList());
+
+            j.Add(1234);
+            j.RemoveAt(2);
         }
 
         /// <summary>
@@ -202,13 +202,12 @@ namespace Lirui.TagLibrary.Windows {
 
             if (addFileWindow.IsOK) {
                 foreach (var filename in addFileWindow.FileNames) {
-                    AddFile(filename);
+                    var fileInfo = AddFile(filename);
                     var oldTags = addFileWindow.SelectedTags.Where(x => x.Id != null).ToList();
                     var newTags = addFileWindow.SelectedTags.Where(x => x.Id == null).ToList();
                     newTags.ForEach(x => AddTag(x));
                     var newTagsWithId = tags.Join(newTags, x => new { x.Name, x.Group }, y => new { y.Name, y.Group }, (x, y) => x);
-                    AddMapper(files.Where(x => x.Name == System.IO.Path.GetFileName(filename) && x.OriginalPath == System.IO.Path.GetDirectoryName(filename)).First()
-                        , oldTags.Concat(newTagsWithId).ToArray());
+                    AddMapper(fileInfo, oldTags.Concat(newTagsWithId).ToArray());
                     TagTree_TagCheckChanged(null, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
                 }
             }
@@ -499,7 +498,7 @@ namespace Lirui.TagLibrary.Windows {
         /// 添加文件
         /// </summary>
         /// <param name="fullFileName"></param>
-        private void AddFile(string fullFileName) {
+        private FileInfo AddFile(string fullFileName) {
             FileInfo fileInfo = null;
             using (var fileStream = System.IO.File.OpenRead(fullFileName)) {
                 fileInfo = new FileInfo() {
@@ -518,6 +517,7 @@ namespace Lirui.TagLibrary.Windows {
             //添加默认标签
             AddTag(new TagInfo() { Group = "Default - Format", Name = fileInfo.Format.ToUpper() });
             AddMapper(fileInfo, tags.Where(x => x.Group == "Default - Format" && x.Name == fileInfo.Format.ToUpper()).ToArray());
+            return fileInfo;
         }
 
         /// <summary>
@@ -554,13 +554,15 @@ namespace Lirui.TagLibrary.Windows {
         /// 添加Tag
         /// </summary>
         /// <param name="tagInfo"></param>
-        private void AddTag(TagInfo tagInfo) {
+        private TagInfo AddTag(TagInfo tagInfo) {
             // 判断是否有重复TagInfo
             if (tags.Where(item => item.Name == tagInfo.Name && item.Group == tagInfo.Group).Count() == 0) {
-                tagInfo = db.Insertable(tagInfo).ExecuteReturnEntity();
-                tags.Add(tagInfo);
-                tagTree.AddTag(new TagInfo[] { tagInfo });
+                var newTagInfo = db.Insertable(tagInfo).ExecuteReturnEntity();
+                tags.Add(newTagInfo);
+                tagTree.AddTag(new TagInfo[] { newTagInfo });
+                return newTagInfo;
             }
+            return tags.Where(item => item.Name == tagInfo.Name && item.Group == tagInfo.Group).SingleOrDefault();
         }
 
         /// <summary>
@@ -659,6 +661,7 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         private void HostList_Connect_Click(object sender, RoutedEventArgs e) {
+
             var selectedHost = hostList.SelectedItem as HostInfo;
             if (selectedHost.Host == "localhost") return;
             try {
@@ -666,7 +669,9 @@ namespace Lirui.TagLibrary.Windows {
                 var port = selectedHost.Port;
                 var remoteWindow = new RemoteWindow() {
                     IPAddress = ip,
-                    Port = port
+                    Port = port,
+                    Owner = this,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
                 };
                 remoteWindow.Downloaded += RemoteWindow_Downloaded;
                 remoteWindow.ShowDialog();
@@ -676,7 +681,26 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         private void RemoteWindow_Downloaded(object sender, DownloadedEventArgs e) {
-            throw new NotImplementedException();
+            var fileInfo = AddFile(e.FileName);
+            (fileList.ItemsSource as BindingList<FileInfo>).Add(fileInfo);
+            foreach (var tagInfo in e.TagInfos) tagInfo.Id = null;
+            var tagInfos = e.TagInfos
+                .Where(item => !item.Group.StartsWith("Default - "))
+                .Select(item => AddTag(item));
+            AddMapper(fileInfo, tagInfos.ToArray());
+            TagTree_TagCheckChanged(null, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e) {
+            fileList.SelectAll();
+        }
+
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e) {
+            fileList.SelectedIndex = -1;
+        }
+
+        private void MenuItem_Click_2(object sender, RoutedEventArgs e) {
+            fileList.SelectedIndex = -1;
         }
     }
 }

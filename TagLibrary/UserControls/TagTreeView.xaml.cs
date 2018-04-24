@@ -31,26 +31,28 @@ namespace Lirui.TagLibrary.UserControls {
                        .ToList();
             }
             set {
-                var tags = value;
-                var groups = new BindingList<TreeViewItem>();
-                tagTree.ItemsSource = groups;
-                foreach (var item in tags.GroupBy(item => item.Group).Select(item => item.First())) {
-                    var group = new TreeViewItem() {
-                        DataContext = item,
-                        ItemsSource = new BindingList<CheckBox>()
-                    };
-                    group.SetBinding(TreeViewItem.HeaderProperty, new Binding("Group"));
-                    groups.Add(group);
-                }
-                foreach (var item in tags) {
-                    var tag = new CheckBox() { DataContext = item };
-                    tag.SetBinding(ContentProperty, new Binding("Name"));
-                    tag.Checked += Tag_CheckChanged;
-                    tag.Unchecked += Tag_CheckChanged;
-                    (groups.Where(group => (group.DataContext as TagInfo).Group == item.Group).First().ItemsSource as BindingList<CheckBox>)
-                        .Add(tag);
-                }
-                tagTree.ItemsSource = groups;
+                Dispatcher.Invoke(() => {
+                    var tags = value;
+                    var groups = new BindingList<TreeViewItem>();
+                    tagTree.ItemsSource = groups;
+                    foreach (var item in tags.GroupBy(item => item.Group).Select(item => item.First())) {
+                        var group = new TreeViewItem() {
+                            DataContext = item,
+                            ItemsSource = new BindingList<CheckBox>()
+                        };
+                        group.SetBinding(TreeViewItem.HeaderProperty, new Binding("Group"));
+                        groups.Add(group);
+                    }
+                    foreach (var item in tags) {
+                        var tag = new CheckBox() { DataContext = item };
+                        tag.SetBinding(ContentProperty, new Binding("Name"));
+                        tag.Checked += Tag_CheckChanged;
+                        tag.Unchecked += Tag_CheckChanged;
+                        (groups.Where(group => (group.DataContext as TagInfo).Group == item.Group).First().ItemsSource as BindingList<CheckBox>)
+                            .Add(tag);
+                    }
+                    tagTree.ItemsSource = groups;
+                });
             }
         }
 

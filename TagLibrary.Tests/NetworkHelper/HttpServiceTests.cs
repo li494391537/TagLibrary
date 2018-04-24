@@ -29,7 +29,7 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
                     }
                 };
                 HttpService.StartHttpService();
-                var result = HttpService.GetTags(IPAddress.Parse("127.0.0.1"), HttpService.Port).Result;
+                var result = HttpService.GetTags(IPAddress.Parse("192.168.31.11"), 48972).Result;
                 HttpService.StopHttpService();
                 if (HttpService.TagInfos.Count != result.Length) Assert.Fail();
                 for (int i = 0; i < HttpService.TagInfos.Count; i++) {

@@ -125,11 +125,11 @@ namespace Lirui.TagLibrary.NetworkHelper {
             } catch { return null; }
         }
 
-        public static async Task<string> GetFile(IPAddress ip, int port, string filename) {
+        public static async Task<string> GetFile(IPAddress ip, int port, string uuidWithFormat, string filename) {
             try {
                 var httpClient = new HttpClient();
                 var req = new HttpRequestMessage {
-                    RequestUri = new Uri("http://" + ip.ToString() + ":" + port + "/File/" + filename)
+                    RequestUri = new Uri("http://" + ip.ToString() + ":" + port + "/File/" + uuidWithFormat)
                 };
                 var res = await httpClient.SendAsync(req);
                 if (!res.IsSuccessStatusCode) return null;
