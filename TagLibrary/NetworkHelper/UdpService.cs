@@ -12,18 +12,17 @@ using System.Timers;
 
 namespace Lirui.TagLibrary.NetworkHelper {
     class UdpService {
+        public static int HttpPort { get; set; }
         public static int Port => port;
         private static readonly int port = 4456;
-        private static UdpClient udpClient = new UdpClient(port);
-        private static System.Timers.Timer timer = new System.Timers.Timer(5000);
+        private static UdpClient udpClient;
+        private static System.Timers.Timer timer = new System.Timers.Timer(10000);
         private static IEnumerable<IPAddress> BroadcastAddress;
         private static IEnumerable<(IPAddress IP, IPAddress Mask)> iPAddresses;
         private static Task task;
         private static CancellationTokenSource cancellationTokenSource;
 
-        private static List<HostInfo> hostInfos = new List<HostInfo>() {
-            new HostInfo("localhost", "online")
-        };
+        private static List<HostInfo> hostInfos = new List<HostInfo>();
 
         public static List<HostInfo> HostInfos { get => hostInfos; }
 
@@ -57,18 +56,19 @@ namespace Lirui.TagLibrary.NetworkHelper {
                     }
                     return new IPAddress(buffer);
                 });
-            SetTask();
-        }
 
-
-        private static void SetTask() {
             cancellationTokenSource = new CancellationTokenSource();
             task = new Task(Receive, cancellationTokenSource.Token);
         }
 
-        public static void StartSendHeartBeat() {
-            timer.Elapsed += SendHeartBeat;
-            timer.Start();
+
+        public static bool StartSendHeartBeat() {
+            try {
+                udpClient = udpClient ?? new UdpClient(port);
+                timer.Elapsed += SendHeartBeat;
+                timer.Start();
+                return true;
+            } catch { return false; }
         }
 
         public static void StopSendHeartBeat() {
@@ -76,9 +76,14 @@ namespace Lirui.TagLibrary.NetworkHelper {
             timer.Elapsed -= SendHeartBeat;
         }
 
-        public static void StartReceive() {
-            if (task.Status == TaskStatus.Running) return;
-            task.Start();
+        public static bool StartReceive() {
+            try {
+                if (udpClient == null) {
+                    udpClient = new UdpClient(port);
+                }
+                task.Start();
+                return true;
+            } catch { return false; }
         }
 
         public static void StopReceive() {
@@ -98,37 +103,39 @@ namespace Lirui.TagLibrary.NetworkHelper {
 
         private static void Receive() {
             while (true) {
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, port);
-                var data = udpClient.Receive(ref endPoint);
-                if (data.Length != 8) continue;
-                if (!(data[0] == 0x10 && data[1] == 0x11 && data[2] == 0x22 && data[3] == 0x23)) continue;
-                byte[] buffer = new byte[4];
-                Array.Copy(data, 4, buffer, 0, 4);
-                int remotePort = 0;
-                if (BitConverter.IsLittleEndian) {
-                    remotePort = BitConverter.ToInt32(buffer.Reverse().ToArray(), 0);
-                } else {
-                    remotePort = BitConverter.ToInt32(buffer, 0);
-                }
+                try {
+                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, port);
+                    var data = udpClient.Receive(ref endPoint);
+                    if (data.Length != 8) continue;
+                    if (!(data[0] == 0x10 && data[1] == 0x11 && data[2] == 0x22 && data[3] == 0x23)) continue;
+                    byte[] buffer = new byte[4];
+                    Array.Copy(data, 4, buffer, 0, 4);
+                    int remotePort = 0;
+                    if (BitConverter.IsLittleEndian) {
+                        remotePort = BitConverter.ToInt32(buffer.Reverse().ToArray(), 0);
+                    } else {
+                        remotePort = BitConverter.ToInt32(buffer, 0);
+                    }
 
-                //确认是否是来自自己的数据包
-                if (iPAddresses.Where(item => item.IP.ToString() == endPoint.Address.ToString()).Count() != 0) continue;
+                    //确认是否是来自自己的数据包
+                    if (iPAddresses.Where(item => item.IP.ToString() == endPoint.Address.ToString()).Count() != 0) continue;
 
-                //查找该主机是否已经存在于主机列表
-                var result = hostInfos
-                    .Where(item => item.Host.Equals(endPoint.Address.ToString()))
-                    .FirstOrDefault();
-                if (result == null) {
-                    var hostAdd = new HostInfo(endPoint.Address.ToString(), "online") {
-                        LastOnline = DateTime.UtcNow,
-                        Port = remotePort
-                    };
-                    hostInfos.Add(hostAdd);
-                    HostListChanged?.Invoke(null, new HostListChangedEventArgs(hostAdd, true));
-                } else {
-                    result.Status = "online";
-                    result.LastOnline = DateTime.UtcNow;
-                }
+                    //查找该主机是否已经存在于主机列表
+                    var result = hostInfos
+                        .Where(item => item.Host.Equals(endPoint.Address.ToString()))
+                        .FirstOrDefault();
+                    if (result == null) {
+                        var hostAdd = new HostInfo(endPoint.Address.ToString(), "online") {
+                            LastOnline = DateTime.UtcNow,
+                            Port = remotePort
+                        };
+                        hostInfos.Add(hostAdd);
+                        HostListChanged?.Invoke(null, new HostListChangedEventArgs(hostAdd, true));
+                    } else {
+                        result.Status = "online";
+                        result.LastOnline = DateTime.UtcNow;
+                    }
+                } catch { break; }
             }
         }
 
@@ -142,9 +149,9 @@ namespace Lirui.TagLibrary.NetworkHelper {
             buffer[3] = 0x23;
             //发送本地开放端口号(大端序)
             if (BitConverter.IsLittleEndian) {
-                Array.Copy(BitConverter.GetBytes(port).Reverse().ToArray(), 0, buffer, 4, 4);
+                Array.Copy(BitConverter.GetBytes(HttpPort).Reverse().ToArray(), 0, buffer, 4, 4);
             } else {
-                Array.Copy(BitConverter.GetBytes(port), 0, buffer, 4, 4);
+                Array.Copy(BitConverter.GetBytes(HttpPort), 0, buffer, 4, 4);
             }
 
             //计算广播地址
@@ -160,7 +167,6 @@ namespace Lirui.TagLibrary.NetworkHelper {
         }
 
         public static event EventHandler<HostListChangedEventArgs> HostListChanged;
-        //public static event EventHandler<ReceivedDataEventArgs> ReceivedData;
     }
 
     class HostListChangedEventArgs : EventArgs {

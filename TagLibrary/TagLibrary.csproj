@@ -93,6 +93,7 @@
     </Compile>
     <Compile Include="Utils\LoadExtension.cs" />
     <Compile Include="ValueConverter\FileSizeValueConverter.cs" />
+    <Compile Include="ValueConverter\NetworkStatusValueConverter.cs" />
     <Compile Include="ValueConverter\SettingsVisibilityValueConverter.cs" />
     <Compile Include="Windows\AddFile.xaml.cs">
       <DependentUpon>AddFile.xaml</DependentUpon>

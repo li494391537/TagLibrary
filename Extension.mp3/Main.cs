@@ -78,7 +78,7 @@ namespace Lirui.TagLibray.Extension {
                     break;
                 case "TPE1":
                     data = GetTextData(buffer);
-                    data.Split('\\')
+                    data.Split('/')
                         .ToList()
                         .ForEach(item => tags.Add(new KeyValuePair<string, string>("歌手", item)));
                     break;

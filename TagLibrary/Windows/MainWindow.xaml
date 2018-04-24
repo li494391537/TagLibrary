@@ -7,7 +7,8 @@
         xmlns:usercontrols="clr-namespace:Lirui.TagLibrary.UserControls"
         xmlns:valueConverter="clr-namespace:Lirui.TagLibrary.ValueConverter"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
+        Title="TagLibrary" Height="600" Width="1000"
+        Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -69,7 +70,9 @@
 
             <!--文件列表-->
             <!--ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"-->
-            <ListView Grid.Column="1" Name="fileList" BorderBrush="#FF828790" SelectionChanged="FileList_SelectionChanged" ItemsSource="{Binding}">
+            <ListView Grid.Column="1" Name="fileList" BorderBrush="#FF828790" 
+                      SelectionChanged="FileList_SelectionChanged" 
+                      ItemsSource="{Binding}">
                 <ListView.ContextMenu>
                     <ContextMenu Name="fileListContextMenu">
                         <MenuItem Header="打开" Click="FileList_ContextMenu_Open_Click"/>
@@ -114,7 +117,11 @@
 
         <!--状态栏-->
         <StatusBar Grid.Row="2" FontSize="10">
-            <Label Content="Test"/>
+            <Label Content="UDP服务状态：" Width="100" FontSize="12"/>
+            <Label x:Name="UdpStatus" Width="100" FontSize="12"/>
+            <Separator/>
+            <Label Content="HTTP服务状态" Width="100" FontSize="12"/>
+            <Label x:Name="HttpStatus" Width="100" FontSize="12"/>
         </StatusBar>
     </Grid>
 </Window>

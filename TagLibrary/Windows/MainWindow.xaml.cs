@@ -1,6 +1,7 @@
 ﻿using Lirui.TagLibrary.Models;
 using Lirui.TagLibrary.NetworkHelper;
 using Lirui.TagLibrary.UserControls;
+using Lirui.TagLibrary.ValueConverter;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Lirui.TagLibrary.Windows {
     /// <summary>
@@ -26,7 +28,6 @@ namespace Lirui.TagLibrary.Windows {
         List<FileInfo> files;
         List<TagInfo> tags;
         List<FileTagMapper> mappers;
-        //BindingList<HostInfo> hosts = new BindingList<HostInfo>();
 
         /// <summary>
         /// 构造方法
@@ -37,13 +38,9 @@ namespace Lirui.TagLibrary.Windows {
             //初始化存储目录
             System.IO.Directory.CreateDirectory("library");
 
-            #region TEST
-            //System.IO.File.Delete("data.db");
-            #endregion
-
             #region 初始化数据库
 
-            #region sqlite文件检查 (暂时未实现)
+            #region sqlite文件检查
             //try {
             //    bool isTableExists;
             //    using (var sqlite = new SQLiteConnection("Data Source=data.db;Version=3;")) {
@@ -94,17 +91,11 @@ namespace Lirui.TagLibrary.Windows {
             CodeFirst();
             #endregion
 
-            #region TEST
-            //TestData();
-            #endregion
-
             #region 初始化字段
             version = string.Format("{0}.{1}.{2:000000}", versionMajor, versionMinor, versionBuild);
             #endregion
 
             #region 从数据库中读取数据
-
-
 
             //初始化文件列表
             files = db.Queryable<FileInfo>().ToList();
@@ -125,63 +116,42 @@ namespace Lirui.TagLibrary.Windows {
 
             //初始化Tag列表
             tags = db.Queryable<TagInfo>().ToList();
-            //var groups = new BindingList<TreeViewItem>();
-            //foreach (var item in tags.GroupBy(item => item.Group).Select(item => item.First())) {
-            //    var group = new TreeViewItem() {
-            //        DataContext = item,
-            //        ItemsSource = new BindingList<CheckBox>()
-            //    };
-            //    group.SetBinding(TreeViewItem.HeaderProperty, new Binding("Group"));
-            //    groups.Add(group);
-            //}
-            //foreach (var item in tags) {
-            //    var tag = new CheckBox() { DataContext = item };
-            //    tag.SetBinding(ContentProperty, new Binding("Name"));
-            //    tag.Checked += Tag_Checked;
-            //    tag.Unchecked += Tag_Checked;
-            //    (groups.Where(group => (group.DataContext as TagInfo).Group == item.Group).First().ItemsSource as BindingList<CheckBox>)
-            //        .Add(tag);
-            //}
             tagTree.Tags = tags;
-            //foreach (var item in tags) {
-            //    var tag = new CheckBox() { DataContext = item };
-            //    tag.SetBinding(ContentProperty, new Binding("Name"));
-            //    tag.Checked += Tag_Checked;
-            //    tag.Unchecked += Tag_Checked;
-            //    if ((tagTree.ItemsSource as BindingList<TreeViewItem>).Where(group => (group.DataContext as TagInfo).Group == item.Group).Count() == 0) {
-            //        var group = new TreeViewItem() {
-            //            DataContext = item,
-            //            ItemsSource = new BindingList<CheckBox>() { tag }
-            //        };
-            //        group.SetBinding(HeaderedItemsControl.HeaderProperty, new Binding("Group"));
-            //        (tagTree.ItemsSource as BindingList<TreeViewItem>).Add(group);
-            //    } else {
-            //        ((tagTree.ItemsSource as BindingList<TreeViewItem>).Where(group => (group.DataContext as TagInfo).Group == item.Group).First().ItemsSource as BindingList<CheckBox>)
-            //            .Add(tag);
-            //    }
-            //}
+
 
             //初始化映射列表
             mappers = db.Queryable<FileTagMapper>().ToList();
 
-            //hostSelect.ItemsSource = hosts;
-            //hosts.Add(new HostInfo("localhost"));
-            hostList.ItemsSource = new BindingList<HostInfo>(UdpService.HostInfos);
-            UdpService.HostListChanged += (o, e) => {
+            hostList.ItemsSource = new BindingList<HostInfo>(new List<HostInfo>() {
+                new HostInfo("localhost", "online")
+            });
+
+            #region 网络部分
+            UdpService.HostListChanged += (_sender, _e) => {
                 hostList.Dispatcher.Invoke(() => {
-                    if (e.IsAdd) {
-                        (hostList.ItemsSource as BindingList<HostInfo>).Add(e.HostInfo);
-                    }else {
-                        (hostList.ItemsSource as BindingList<HostInfo>).Remove(e.HostInfo);
+                    if (_e.IsAdd) {
+                        (hostList.ItemsSource as BindingList<HostInfo>).Add(_e.HostInfo);
+                    } else {
+                        (hostList.ItemsSource as BindingList<HostInfo>).Remove(_e.HostInfo);
                     }
                 });
 
             };
-            //hostSelect.SelectedIndex = 0;
-
+            if (HttpService.StartHttpService()) {
+                HttpStatus.Content = "服务已开启";
+            } else {
+                HttpStatus.Content = "服务未开启";
+            }
+            
+            UdpService.HttpPort = HttpService.Port;
+            if (UdpService.StartSendHeartBeat() && UdpService.StartReceive()) {
+                UdpStatus.Content = "服务已开启";
+            } else {
+                UdpStatus.Content = "服务未开启";
+            }
             #endregion
 
-            #region 关联事件
+
             #endregion
 
         }
@@ -344,6 +314,93 @@ namespace Lirui.TagLibrary.Windows {
                 TagTree_TagCheckChanged(this, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
 
             }
+        }
+
+        /// <summary>
+        /// 文件列表->右键->复制到
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_CopyTo_Click(object sender, RoutedEventArgs e) {
+            var selectedFile = fileList.SelectedItems.Cast<FileInfo>().ToArray();
+
+            var groups = selectedFile
+                .Join(mappers, x => x.Id, y => y.FileId, (x, y) => new { file = x, y.TagId })
+                .Join(tags, x => x.TagId, y => y.Id, (x, y) => new { fileId = (int) x.file.Id, tagGroup = y.Group })
+                .Distinct()
+                .GroupBy(item => item.tagGroup, (key, value) => new { tagGroup = key, count = value.Count() })
+                .Where(item => item.count == selectedFile.Count())
+                .Select(item => item.tagGroup);
+
+
+            var copyToWindow = new CopyToFolder(groups.ToArray()) {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            copyToWindow.ShowDialog();
+            if (!copyToWindow.IsOK) return;
+            if (copyToWindow.SelectedGroup == "") {
+                System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + "\\TagLibrary");
+                foreach (var file in selectedFile) {
+                    try {
+                        var filename = file.UUID + file.Format;
+                        System.IO.File.Copy(
+                            Environment.CurrentDirectory + @"\library\" + filename
+                           , copyToWindow.SelectedFolder + "\\TagLibrary\\" + file.Name);
+                    } catch { }
+                }
+            } else {
+                System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + "\\" + copyToWindow.SelectedGroup);
+                selectedFile
+                    .Join(mappers, x => x.Id, y => y.FileId, (x, y) => new { file = x, mapper = y })
+                    .Join(tags, x => x.mapper.TagId, y => y.Id, (x, y) => new { x.file, tag = y })
+                    .Where(item => item.tag.Group == copyToWindow.SelectedGroup)
+                    .Distinct()
+                    .ToList()
+                    .ForEach(item => {
+                        System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + '\\' + item.tag.Group + '\\' + item.tag.Name);
+                        System.IO.File.Copy(
+                            Environment.CurrentDirectory + @"\library\" + item.file.UUID + item.file.Format,
+                            copyToWindow.SelectedFolder + '\\' + item.tag.Group + '\\' + item.tag.Name + '\\' + item.file.Name);
+
+                    });
+            }
+        }
+
+        /// <summary>
+        /// 文件列表->右键->打开
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_Open_Click(object sender, RoutedEventArgs e) {
+            if (fileList.SelectedItems.Count > 10) {
+                if (MessageBox.Show("选择项大于10项，打开可能会耗费较多时间，真的要打开么？", "", MessageBoxButton.YesNo) == MessageBoxResult.No) {
+                    return;
+                }
+            }
+            foreach (var file in fileList.SelectedItems.Cast<FileInfo>()) {
+                try {
+                    var filename = Environment.CurrentDirectory + @"\library\" + file.UUID + file.Format;
+                    var processStartInfo = new System.Diagnostics.ProcessStartInfo(filename);
+                    var process = System.Diagnostics.Process.Start(processStartInfo);
+                } catch { }
+            }
+        }
+
+        /// <summary>
+        /// 文件列表->右键->删除
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_Delete_Click(object sender, RoutedEventArgs e) {
+            fileList.SelectedItems
+                .Cast<FileInfo>()
+                .ToList()
+                .ForEach(item => {
+                    RemoveMapper(item);
+                    RemoveFile(item);
+                    System.IO.File.Delete(Environment.CurrentDirectory + @"\library\" + item.UUID + item.Format);
+                });
         }
 
         /// <summary>
@@ -555,52 +612,6 @@ namespace Lirui.TagLibrary.Windows {
             }
         }
 
-        private void TestData() {
-            foreach (var file in System.IO.Directory.EnumerateFiles("library")) {
-                System.IO.File.Delete(file);
-            }
-
-            #region Add File
-            foreach (var file in System.IO.Directory.EnumerateFiles(@"D:\test")) {
-                var fileInfo = new FileInfo() {
-                    Name = System.IO.Path.GetFileName(file),
-                    UUID = Guid.NewGuid().ToString().Replace("-", ""),
-                    OriginalPath = System.IO.Path.GetDirectoryName(file),
-                    Format = System.IO.Path.GetExtension(file).TrimStart('.').ToUpper(),
-                    Size = System.IO.File.OpenRead(file).Length
-                };
-                db.Insertable(fileInfo).ExecuteCommand();
-                System.IO.File.Copy(file, "library\\" + fileInfo.UUID + System.IO.Path.GetExtension(file));
-            }
-            #endregion
-            #region Add Tag
-
-            var groups = new List<string>();
-            for (int i = 0; i < 3; i++) {
-                groups.Add(Guid.NewGuid().ToString().Split('-')[1]);
-            }
-
-            for (int i = 0; i < 5; i++) {
-                var tagInfo = new TagInfo() {
-                    Name = Guid.NewGuid().ToString().Split('-')[1],
-                    Group = groups[Guid.NewGuid().ToByteArray()[0] % 3]
-                };
-                db.Insertable(tagInfo).ExecuteCommand();
-            }
-
-            #endregion
-            #region Add Mapper
-
-            for (int i = 0; i < 10; i++) {
-                db.Insertable(new FileTagMapper() {
-                    FileId = Guid.NewGuid().ToByteArray()[8] % 15,
-                    TagId = Guid.NewGuid().ToByteArray()[8] % 5
-                }).ExecuteCommand();
-            }
-
-            #endregion
-        }
-
         #region IDisposable Support
         private bool disposedValue = false;      //要检测冗余调用
 
@@ -632,78 +643,10 @@ namespace Lirui.TagLibrary.Windows {
             // TODO: 如果在以上内容中替代了终结器，则取消注释以下行。
             // GC.SuppressFinalize(this);
         }
+
         #endregion
 
-        private void FileList_ContextMenu_CopyTo_Click(object sender, RoutedEventArgs e) {
-            var selectedFile = fileList.SelectedItems.Cast<FileInfo>().ToArray();
-
-            var groups = selectedFile
-                .Join(mappers, x => x.Id, y => y.FileId, (x, y) => new { file = x, y.TagId })
-                .Join(tags, x => x.TagId, y => y.Id, (x, y) => new { fileId = (int) x.file.Id, tagGroup = y.Group })
-                .Distinct()
-                .GroupBy(item => item.tagGroup, (key, value) => new { tagGroup = key, count = value.Count() })
-                .Where(item => item.count == selectedFile.Count())
-                .Select(item => item.tagGroup);
-
-
-            var copyToWindow = new CopyToFolder(groups.ToArray()) {
-                Owner = this,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-            copyToWindow.ShowDialog();
-            if (!copyToWindow.IsOK) return;
-            if (copyToWindow.SelectedGroup == "") {
-                System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + "\\TagLibrary");
-                foreach (var file in selectedFile) {
-                    try {
-                        var filename = file.UUID + file.Format;
-                        System.IO.File.Copy(
-                            Environment.CurrentDirectory + @"\library\" + filename
-                           , copyToWindow.SelectedFolder + "\\TagLibrary\\" + file.Name);
-                    } catch { }
-                }
-            } else {
-                System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + "\\" + copyToWindow.SelectedGroup);
-                selectedFile
-                    .Join(mappers, x => x.Id, y => y.FileId, (x, y) => new { file = x, mapper = y })
-                    .Join(tags, x => x.mapper.TagId, y => y.Id, (x, y) => new { x.file, tag = y })
-                    .Where(item => item.tag.Group == copyToWindow.SelectedGroup)
-                    .Distinct()
-                    .ToList()
-                    .ForEach(item => {
-                        System.IO.Directory.CreateDirectory(copyToWindow.SelectedFolder + '\\' + item.tag.Group + '\\' + item.tag.Name);
-                        System.IO.File.Copy(
-                            Environment.CurrentDirectory + @"\library\" + item.file.UUID + item.file.Format,
-                            copyToWindow.SelectedFolder + '\\' + item.tag.Group + '\\' + item.tag.Name + '\\' + item.file.Name);
-
-                    });
-            }
-        }
-
-        private void FileList_ContextMenu_Open_Click(object sender, RoutedEventArgs e) {
-            if (fileList.SelectedItems.Count > 10) {
-                if (MessageBox.Show("选择项大于10项，打开可能会耗费较多时间，真的要打开么？", "", MessageBoxButton.YesNo) == MessageBoxResult.No) {
-                    return;
-                }
-            }
-            foreach (var file in fileList.SelectedItems.Cast<FileInfo>()) {
-                try {
-                    var filename = Environment.CurrentDirectory + @"\library\" + file.UUID + file.Format;
-                    var processStartInfo = new System.Diagnostics.ProcessStartInfo(filename);
-                    var process = System.Diagnostics.Process.Start(processStartInfo);
-                } catch { }
-            }
-        }
-
-        private void FileList_ContextMenu_Delete_Click(object sender, RoutedEventArgs e) {
-            fileList.SelectedItems
-                .Cast<FileInfo>()
-                .ToList()
-                .ForEach(item => {
-                    RemoveMapper(item);
-                    RemoveFile(item);
-                    System.IO.File.Delete(Environment.CurrentDirectory + @"\library\" + item.UUID + item.Format);
-                });
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
         }
     }
 }
