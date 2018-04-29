@@ -145,7 +145,7 @@ namespace Lirui.TagLibrary.UserControls {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MenuItemUncheckAll_Click(object sender, RoutedEventArgs e) =>
+        private void ContextMenuUncheckAll_Click(object sender, RoutedEventArgs e) =>
             (tagTree.ItemsSource as BindingList<TreeViewItem>)
                 .SelectMany(x => x.ItemsSource as BindingList<CheckBox>)
                 .ToList()

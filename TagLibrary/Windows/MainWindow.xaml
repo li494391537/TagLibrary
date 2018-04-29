@@ -84,9 +84,8 @@
                         <Separator />
                         <MenuItem Header="设置Tag" Click="FileList_ContextMenu_SetTag_Click"/>
                         <Separator />
-                        <MenuItem Header="全部选择" Click="MenuItem_Click"/>
-                        <MenuItem Header="全选取消" Click="MenuItem_Click_1"/>
-                        <MenuItem Header="反向选择" Click="MenuItem_Click_2"/>
+                        <MenuItem Header="全部选择" Click="FileList_ContextMenu_CheckAll_Click"/>
+                        <MenuItem Header="全选取消" Click="FileList_ContextMenu_UncheckAll_Click"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>

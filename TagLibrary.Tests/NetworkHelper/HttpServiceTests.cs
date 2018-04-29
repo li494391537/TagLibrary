@@ -47,7 +47,7 @@ namespace Lirui.TagLibrary.NetworkHelper.Tests {
         public void GetFileTest() {
             try {
                 HttpService.StartHttpService();
-                var filename = HttpService.GetFile(IPAddress.Parse("127.0.0.1"), HttpService.Port, "61a0883194684064ae8cabc63ea5b805.jpg").Result;
+                var filename = HttpService.GetFile(IPAddress.Parse("127.0.0.1"), HttpService.Port, "61a0883194684064ae8cabc63ea5b805.jpg", "test.jpg").Result;
                 HttpService.StopHttpService();
 
                 var md5 = new MD5CryptoServiceProvider();

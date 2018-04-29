@@ -13,7 +13,7 @@
                     <MenuItem Header="添加标签" Click="ContextMenuAddTag_Click"/>
                     <Separator />
                     <MenuItem Header="全部选择" Click="ContextMenuCheckAll_Click"/>
-                    <MenuItem Header="全选取消" Click="MenuItemUncheckAll_Click"/>
+                    <MenuItem Header="全选取消" Click="ContextMenuUncheckAll_Click"/>
                     <MenuItem Header="反向选择" Click="ContextMenuInverse_Click"/>
                     <Separator />
                     <MenuItem Header="全部折叠" Click="ContextMenuCollapseAll_Click"/>

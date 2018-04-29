@@ -51,11 +51,12 @@ namespace Lirui.TagLibray.Extension {
                 byte[] buffer = new byte[10];
                 hasRead += stream.Read(buffer, 0, 10);
                 string frameID = Encoding.ASCII.GetString(buffer, 0, 4);
+                // 帧大小, 4 bytes, 大端存储
                 int frameBodySize = buffer[4] << 24 |
                                     buffer[5] << 16 |
                                     buffer[6] << 08 |
                                     buffer[7];
-                if (frameBodySize < 1) break;  //帧大小最小为1byte
+                if (frameBodySize < 1) break;    //帧大小最小为1byte
                 buffer = new byte[frameBodySize];
                 hasRead += stream.Read(buffer, 0, frameBodySize);
                 string data = string.Empty;

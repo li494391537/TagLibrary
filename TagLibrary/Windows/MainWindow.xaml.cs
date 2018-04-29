@@ -1,17 +1,14 @@
 ﻿using Lirui.TagLibrary.Models;
 using Lirui.TagLibrary.NetworkHelper;
 using Lirui.TagLibrary.UserControls;
-using Lirui.TagLibrary.ValueConverter;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace Lirui.TagLibrary.Windows {
     /// <summary>
@@ -412,6 +409,24 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         /// <summary>
+        /// 文件列表->右键->全部选择
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_CheckAll_Click(object sender, RoutedEventArgs e) {
+            fileList.SelectAll();
+        }
+
+        /// <summary>
+        /// 文件列表->右键->全部取消
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_UncheckAll_Click(object sender, RoutedEventArgs e) {
+            fileList.SelectedIndex = -1;
+        }
+
+        /// <summary>
         /// 文件列表选择项变化时的处理方法
         /// </summary>
         /// <param name="sender"></param>
@@ -444,6 +459,55 @@ namespace Lirui.TagLibrary.Windows {
                     .ToList()
                     .ForEach(item => (fileList.ItemsSource as BindingList<FileInfo>).Add(item));
             }
+        }
+
+        /// <summary>
+        /// 窗体Loaded事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+        }
+        
+        /// <summary>
+        /// Host列表->右键->连接
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HostList_Connect_Click(object sender, RoutedEventArgs e) {
+
+            var selectedHost = hostList.SelectedItem as HostInfo;
+            if (selectedHost.Host == "localhost") return;
+            try {
+                var ip = IPAddress.Parse(selectedHost.Host);
+                var port = selectedHost.Port;
+                var remoteWindow = new RemoteWindow() {
+                    IPAddress = ip,
+                    Port = port,
+                    Owner = this,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+                remoteWindow.Downloaded += RemoteWindow_Downloaded;
+                remoteWindow.ShowDialog();
+                remoteWindow.Downloaded -= RemoteWindow_Downloaded;
+
+            } catch { MessageBox.Show("连接失败"); }
+        }
+        
+        /// <summary>
+        /// 在RemoteWindow中下载完文件后触发的事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RemoteWindow_Downloaded(object sender, DownloadedEventArgs e) {
+            var fileInfo = AddFile(e.FileName);
+            (fileList.ItemsSource as BindingList<FileInfo>).Add(fileInfo);
+            foreach (var tagInfo in e.TagInfos) tagInfo.Id = null;
+            var tagInfos = e.TagInfos
+                .Where(item => !item.Group.StartsWith("Default - "))
+                .Select(item => AddTag(item));
+            AddMapper(fileInfo, tagInfos.ToArray());
+            TagTree_TagCheckChanged(null, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
         }
 
         #endregion
@@ -530,26 +594,7 @@ namespace Lirui.TagLibrary.Windows {
             (fileList.ItemsSource as BindingList<FileInfo>).Remove(fileInfo);
         }
 
-        ///// <summary>
-        ///// 添加主机
-        ///// </summary>
-        ///// <param name="host"></param>
-        //private void AddHost(string host, string status = "offline") {
-        //    if (hosts.Where(item => item.Host == host).Count() == 0) {
-        //        hosts.Add(new HostInfo(host, status));
-        //    } else {
-        //        hosts.Where(item => item.Host == host).First().Status = status;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 移除主机
-        ///// </summary>
-        ///// <param name="host"></param>
-        //private void RemoveHost(string host) {
-        //    hosts.Remove(hosts.Where(item => item.Host == host).First());
-        //}
-
+        
         /// <summary>
         /// 添加Tag
         /// </summary>
@@ -656,51 +701,6 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         #endregion
-
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
-        }
-
-        private void HostList_Connect_Click(object sender, RoutedEventArgs e) {
-
-            var selectedHost = hostList.SelectedItem as HostInfo;
-            if (selectedHost.Host == "localhost") return;
-            try {
-                var ip = IPAddress.Parse(selectedHost.Host);
-                var port = selectedHost.Port;
-                var remoteWindow = new RemoteWindow() {
-                    IPAddress = ip,
-                    Port = port,
-                    Owner = this,
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner
-                };
-                remoteWindow.Downloaded += RemoteWindow_Downloaded;
-                remoteWindow.ShowDialog();
-                remoteWindow.Downloaded -= RemoteWindow_Downloaded;
-
-            } catch { MessageBox.Show("连接失败"); }
-        }
-
-        private void RemoteWindow_Downloaded(object sender, DownloadedEventArgs e) {
-            var fileInfo = AddFile(e.FileName);
-            (fileList.ItemsSource as BindingList<FileInfo>).Add(fileInfo);
-            foreach (var tagInfo in e.TagInfos) tagInfo.Id = null;
-            var tagInfos = e.TagInfos
-                .Where(item => !item.Group.StartsWith("Default - "))
-                .Select(item => AddTag(item));
-            AddMapper(fileInfo, tagInfos.ToArray());
-            TagTree_TagCheckChanged(null, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
-        }
-
-        private void MenuItem_Click(object sender, RoutedEventArgs e) {
-            fileList.SelectAll();
-        }
-
-        private void MenuItem_Click_1(object sender, RoutedEventArgs e) {
-            fileList.SelectedIndex = -1;
-        }
-
-        private void MenuItem_Click_2(object sender, RoutedEventArgs e) {
-            fileList.SelectedIndex = -1;
-        }
+        
     }
 }

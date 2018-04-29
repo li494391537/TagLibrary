@@ -12,21 +12,34 @@ using System.Timers;
 
 namespace Lirui.TagLibrary.NetworkHelper {
     class UdpService {
-        public static int HttpPort { get; set; }
+        #region Property
+        public static int HttpPort { get => httpPort; set => httpPort = value; }
         public static int Port => port;
-        private static readonly int port = 4456;
+        public static List<HostInfo> HostInfos => hostInfos;
+        #endregion
+
+        #region Field
+        private const int port = 4456;      //UDP端口号
+        private const int heartBeat = 10;   //心跳包发送间隔(单位:s)
+        private const int timeout = 30;     //若距离上次收到心跳包时间大于timeout秒,则判定离线
+        private static int httpPort;
         private static UdpClient udpClient;
-        private static System.Timers.Timer timer = new System.Timers.Timer(10000);
         private static IEnumerable<IPAddress> BroadcastAddress;
         private static IEnumerable<(IPAddress IP, IPAddress Mask)> iPAddresses;
+        private static System.Timers.Timer timer = new System.Timers.Timer(heartBeat * 1000);
+        private static System.Timers.Timer timer1 = new System.Timers.Timer(heartBeat * 1000);
         private static Task task;
         private static CancellationTokenSource cancellationTokenSource;
-
         private static List<HostInfo> hostInfos = new List<HostInfo>();
+        #endregion
 
-        public static List<HostInfo> HostInfos { get => hostInfos; }
+        #region Event
+        public static event EventHandler<HostListChangedEventArgs> HostListChanged;
+        #endregion
 
-
+        /// <summary>
+        /// 静态构造方法
+        /// </summary>
         static UdpService() {
             iPAddresses =
                 NetworkInterface.GetAllNetworkInterfaces()
@@ -59,9 +72,27 @@ namespace Lirui.TagLibrary.NetworkHelper {
 
             cancellationTokenSource = new CancellationTokenSource();
             task = new Task(Receive, cancellationTokenSource.Token);
+
+
+            timer1.Elapsed += Timer1_Elapsed;
+            timer1.Start();
         }
 
-
+        private static void Timer1_Elapsed(object sender, ElapsedEventArgs e) {
+            var now = DateTime.UtcNow;
+            var timeSpan = new TimeSpan(0, 0, timeout);
+            hostInfos
+                .Where(item => item.Status != "offline")
+                .Where(item => now - item.LastOnline > timeSpan)
+                .ToList()
+                .ForEach(item => item.Status = "offline");
+            
+        }
+        
+        /// <summary>
+        /// 开始发送心跳包
+        /// </summary>
+        /// <returns></returns>
         public static bool StartSendHeartBeat() {
             try {
                 udpClient = udpClient ?? new UdpClient(port);
@@ -71,11 +102,18 @@ namespace Lirui.TagLibrary.NetworkHelper {
             } catch { return false; }
         }
 
+        /// <summary>
+        /// 停止发送心跳包
+        /// </summary>
         public static void StopSendHeartBeat() {
             timer.Stop();
             timer.Elapsed -= SendHeartBeat;
         }
 
+        /// <summary>
+        /// 开始接收心跳包
+        /// </summary>
+        /// <returns></returns>
         public static bool StartReceive() {
             try {
                 if (udpClient == null) {
@@ -86,16 +124,26 @@ namespace Lirui.TagLibrary.NetworkHelper {
             } catch { return false; }
         }
 
+        /// <summary>
+        /// 停止接收心跳包
+        /// </summary>
         public static void StopReceive() {
             cancellationTokenSource.Cancel();
         }
 
+        /// <summary>
+        /// 绑定Timer触发器事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void SendHeartBeat(object sender, ElapsedEventArgs e) {
             SendHeartBeat();
         }
 
-        public static void SendHeartBeat() {
-            //向广播列表内每一项广播心跳包
+        /// <summary>
+        /// 向广播列表内每一项广播心跳包
+        /// </summary>
+        private static void SendHeartBeat() {
             foreach (var (ip, mask) in iPAddresses) {
                 Send(ip, mask);
             }
@@ -149,9 +197,9 @@ namespace Lirui.TagLibrary.NetworkHelper {
             buffer[3] = 0x23;
             //发送本地开放端口号(大端序)
             if (BitConverter.IsLittleEndian) {
-                Array.Copy(BitConverter.GetBytes(HttpPort).Reverse().ToArray(), 0, buffer, 4, 4);
+                Array.Copy(BitConverter.GetBytes(httpPort).Reverse().ToArray(), 0, buffer, 4, 4);
             } else {
-                Array.Copy(BitConverter.GetBytes(HttpPort), 0, buffer, 4, 4);
+                Array.Copy(BitConverter.GetBytes(httpPort), 0, buffer, 4, 4);
             }
 
             //计算广播地址
@@ -166,7 +214,6 @@ namespace Lirui.TagLibrary.NetworkHelper {
             udpClient.SendAsync(buffer, buffer.Length, new IPEndPoint(broadcastAddress, port));
         }
 
-        public static event EventHandler<HostListChangedEventArgs> HostListChanged;
     }
 
     class HostListChangedEventArgs : EventArgs {

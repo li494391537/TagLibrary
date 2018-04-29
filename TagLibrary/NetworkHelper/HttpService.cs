@@ -15,9 +15,17 @@ using System.Threading.Tasks;
 namespace Lirui.TagLibrary.NetworkHelper {
     public static class HttpService {
 
+        public static int Port => port;
+        public static List<TagInfo> TagInfos { get; set; }
+        public static List<Models.FileInfo> FileInfos { get; set; }
+        public static List<FileTagMapper> FileTagMappers { get; set; }
+
+
+        private const int portStart = 10000;
+        private const int portStop = 50000;
+
         private static HttpListener httpListener = new HttpListener();
         private static int port;
-        public static int Port { get => port; }
         private static Task task;
         private static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -26,16 +34,14 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static Regex urlTagInfos = new Regex(@"^\/TagInfos$");
         private static Regex fileTagMappers = new Regex(@"^\/FileTagMappers$");
 
-        public static List<TagInfo> TagInfos { get; set; }
-        public static List<Models.FileInfo> FileInfos { get; set; }
-        public static List<FileTagMapper> FileTagMappers { get; set; }
+
 
 
         static HttpService() {
             var random = new Random();
-            port = random.Next() % 10000 + 40000;
+            port = random.Next() % (portStop - portStart + 1) + portStart;
             while (IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Where(item => item.Port == Port).Count() != 0) {
-                port = random.Next() % 10000 + 40000;
+                port = random.Next() % (portStop - portStart + 1) + portStart;
             }
             httpListener.Prefixes.Add("http://+:" + Port + "/");
             task = new Task(Server, cancellationTokenSource.Token);
