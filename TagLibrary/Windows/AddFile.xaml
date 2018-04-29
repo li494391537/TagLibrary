@@ -61,7 +61,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
-                <usercontrols:TagTreeView x:Name="tagTreeView" Grid.Column="0" AddingTag="TagTreeView_AddingTag"/>
+                <usercontrols:TagTreeView x:Name="tagTreeView" Grid.Column="0" 
+                    BorderBrush="#FF828790" BorderThickness="1"
+                    AddingTag="TagTreeView_AddingTag"/>
 
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions>
@@ -85,7 +87,8 @@
                     <Button Grid.Row="5" Padding="4" Click="CancelSelectTag_Click">&lt;-</Button>
                 </Grid>
 
-                <usercontrols:TagTreeView Grid.Column="4" x:Name="tagSelectedTreeView"/>
+                <usercontrols:TagTreeView Grid.Column="4" x:Name="tagSelectedTreeView"
+                                          BorderBrush="#FF828790" BorderThickness="1"/>
             </Grid>
             <!--按钮-->
             <Grid Grid.Row="4">

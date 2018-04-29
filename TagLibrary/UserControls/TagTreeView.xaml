@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <TreeView x:Name="tagTree" ContextMenuOpening="TagTree_ContextMenuOpening">
+        <TreeView x:Name="tagTree" ContextMenuOpening="TagTree_ContextMenuOpening" BorderThickness="0">
             <TreeView.ContextMenu>
                 <ContextMenu x:Name="tagTreeContextMenu">
                     <MenuItem Header="添加标签" Click="ContextMenuAddTag_Click"/>

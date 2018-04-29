@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lirui.TagLibrary.NetworkHelper {
-    public static class HttpService {
+    static class HttpService {
 
         public static int Port => port;
         public static List<TagInfo> TagInfos { get; set; }
@@ -32,7 +32,7 @@ namespace Lirui.TagLibrary.NetworkHelper {
         private static Regex urlFile = new Regex(@"^\/File\/(?<filename>[0-9a-fA-F]{32,32})\.(?<format>\w{1,7})$");
         private static Regex urlFileInfos = new Regex(@"^\/FileInfos$");
         private static Regex urlTagInfos = new Regex(@"^\/TagInfos$");
-        private static Regex fileTagMappers = new Regex(@"^\/FileTagMappers$");
+        private static Regex urlFileTagMappers = new Regex(@"^\/FileTagMappers$");
 
 
 
@@ -96,7 +96,7 @@ namespace Lirui.TagLibrary.NetworkHelper {
                         res.OutputStream.Write(jsonBytes, 0, jsonBytes.Length);
                         res.StatusCode = 200;
 
-                    } else if (fileTagMappers.IsMatch(req.RawUrl)) {
+                    } else if (urlFileTagMappers.IsMatch(req.RawUrl)) {
 
                         var json = JsonConvert.SerializeObject(FileTagMappers.ToArray());
                         var jsonBytes = Encoding.UTF8.GetBytes(json);

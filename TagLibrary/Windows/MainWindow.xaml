@@ -7,7 +7,9 @@
         xmlns:usercontrols="clr-namespace:Lirui.TagLibrary.UserControls"
         xmlns:valueConverter="clr-namespace:Lirui.TagLibrary.ValueConverter"
         mc:Ignorable="d"
-        Title="TagLibrary" Height="600" Width="1000"
+        Title="TagLibrary" 
+        Height="600" MinHeight="600"
+        Width="1000" MinWidth="1000"
         Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
@@ -17,18 +19,20 @@
         </Grid.RowDefinitions>
 
         <!--菜单栏-->
-        <Menu Grid.Row="0" FontSize="14">
-            <MenuItem Header="文件" >
-                <MenuItem Header="添加文件" Click="Menu_File_AddFile_Click"/>
-                <MenuItem Header="关闭" Click="Menu_File_Close_Click"/>
-            </MenuItem>
-            <MenuItem Header="标签">
-                <MenuItem Header="添加标签" Click="Menu_File_AddTag_Click"/>
-            </MenuItem>
-            <MenuItem Header="设置" Click="Menu_File_Settings_Click"/>
-            <MenuItem Header="关于" Click="Menu_File_About_Click"/>
-            <MenuItem Header="测试" Click="Test_Click"/>
-        </Menu>
+        <Border Grid.Row="0" BorderBrush="#FF828790" BorderThickness="0,0,0,1" SnapsToDevicePixels="true">
+            <Menu FontSize="14" >
+                <MenuItem Header="文件" >
+                    <MenuItem Header="添加文件" Click="Menu_File_AddFile_Click"/>
+                    <MenuItem Header="关闭" Click="Menu_File_Close_Click"/>
+                </MenuItem>
+                <MenuItem Header="标签">
+                    <MenuItem Header="添加标签" Click="Menu_File_AddTag_Click"/>
+                </MenuItem>
+                <MenuItem Header="设置" Click="Menu_File_Settings_Click"/>
+                <MenuItem Header="关于" Click="Menu_File_About_Click"/>
+            </Menu>
+        </Border>
+
 
         <!--主要部分-->
         <Grid Grid.Row="1">
@@ -46,7 +50,7 @@
                 <Grid Grid.Row="0">
                     <!--ComboBox Grid.Row="0" Name="hostSelect" DisplayMemberPath="Host" /-->
                     <!--ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"-->
-                    <ListView Name="hostList">
+                    <ListView Name="hostList" BorderThickness="0,0,0,1">
                         <ListView.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="连接" Click="HostList_Connect_Click"/>
@@ -65,7 +69,8 @@
                     <!--/-->
                 </Grid>
                 <!--Tag列表-->
-                <usercontrols:TagTreeView Grid.Row="1" x:Name="tagTree" BorderBrush="#FF828790" 
+                <usercontrols:TagTreeView Grid.Row="1" x:Name="tagTree" 
+                    BorderThickness="0" BorderBrush="#FF828790"
                     TagCheckChanged="TagTree_TagCheckChanged"/>
 
 
@@ -73,7 +78,7 @@
 
             <!--文件列表-->
             <!--ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"-->
-            <ListView Grid.Column="1" Name="fileList" BorderBrush="#FF828790" 
+            <ListView Grid.Column="1" Name="fileList" BorderThickness="1,0,1,0" 
                       SelectionChanged="FileList_SelectionChanged" 
                       ItemsSource="{Binding}">
                 <ListView.ContextMenu>
@@ -108,18 +113,20 @@
             </ListView>
             <!--/-->
 
-            <Grid Grid.Column="2" Background="White">
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Name="test1" />
-                <TextBlock Grid.Row="1" Name="test2" />
+                <Image Grid.Row="0"/>
+                <Border Grid.Row="1" BorderThickness="0,1,0,0" BorderBrush="#FF828790" SnapsToDevicePixels="true">
+                    <TextBlock Name="test2" />
+                </Border>
             </Grid>
         </Grid>
 
         <!--状态栏-->
-        <StatusBar Grid.Row="2" FontSize="12">
+        <StatusBar Grid.Row="2" FontSize="12" BorderThickness="0,1,0,0" BorderBrush="#FF828790">
             <Label Content="UDP服务状态: " Width="100" FontSize="12"/>
             <Label x:Name="udpStatus" MinWidth="100" FontSize="12"/>
             <Separator/>

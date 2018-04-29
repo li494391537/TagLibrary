@@ -1,14 +1,17 @@
 ﻿using Lirui.TagLibrary.Models;
 using Lirui.TagLibrary.NetworkHelper;
 using Lirui.TagLibrary.UserControls;
+using Lirui.TagLibrary.ValueConverter;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Lirui.TagLibrary.Windows {
     /// <summary>
@@ -164,14 +167,6 @@ namespace Lirui.TagLibrary.Windows {
 
         #region 菜单栏事件处理方法
 
-        private void Test_Click(object sender, RoutedEventArgs e) {
-            List<int> i = new List<int>() { 1, 2, 5, 3, 4 };
-            BindingList<int> j = new BindingList<int>(i.ToList());
-
-            j.Add(1234);
-            j.RemoveAt(2);
-        }
-
         /// <summary>
         /// 菜单栏->文件->添加文件
         /// </summary>
@@ -268,56 +263,22 @@ namespace Lirui.TagLibrary.Windows {
         #region 文件列表事件处理方法
 
         /// <summary>
-        /// 文件列表->右键->设置标签
+        /// 文件列表->右键->打开
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FileList_ContextMenu_SetTag_Click(object sender, RoutedEventArgs e) {
-            //var selectedFile = fileList.SelectedItems.Cast<FileInfo>();
-            var file = fileList.SelectedItem as FileInfo;
-
-            var setTagWindow = new SetTag() {
-                Owner = this,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Tags = tags.Where(x => !x.Group.StartsWith("Default - ")).ToList() ?? new List<TagInfo>(),
-                File = file,
-                SelectedTags = mappers
-                               .Where(x => x.FileId == (fileList.SelectedItem as FileInfo).Id)
-                               .Join(tags, x => x.TagId, y => y.Id, (x, y) => y)
-                               .Where(item => !item.Group.StartsWith("Default - "))
-                               .ToList(),
-            };
-            EventHandler<AddingTagEventArgs> eventHandler =
-                (_sender, _e) => {
-                    AddTag(_e.Tag);
-                    var tagWithId = tags
-                        .Where(item => item.Name == _e.Tag.Name && item.Group == _e.Tag.Group)
-                        .First();
-                    if (tagWithId != null) {
-                        setTagWindow.AddTag(tagWithId);
-                    }
-                };
-            setTagWindow.AddingTag += eventHandler;
-            setTagWindow.ShowDialog();
-            setTagWindow.AddingTag -= eventHandler;
-            if (setTagWindow.IsOK) {
-                var oldTags = setTagWindow.SelectedTags.Where(x => x.Id != null).ToList();
-                var newTags = setTagWindow.SelectedTags.Where(x => x.Id == null).ToList();
-                newTags.ForEach(x => AddTag(x));
-                var newTagsWithId = tags.Join(newTags, x => new { x.Name, x.Group }, y => new { y.Name, y.Group }, (x, y) => x);
-                var allSelectedTags = oldTags.Concat(newTagsWithId);
-                var needDelete =
-                    mappers
-                    .Where(item => item.FileId == file.Id)
-                    .Join(tags, x => x.TagId, y => y.Id, (x, y) => y)
-                    .Except(allSelectedTags)
-                    .Where(item => !item.Group.StartsWith("Default - "))
-                    .ToArray();
-
-                AddMapper(file, oldTags.Concat(newTagsWithId).ToArray());
-                RemoveMapper(file, needDelete);
-                TagTree_TagCheckChanged(this, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
-
+        private void FileList_ContextMenu_Open_Click(object sender, RoutedEventArgs e) {
+            if (fileList.SelectedItems.Count > 10) {
+                if (MessageBox.Show("选择项大于10项，打开可能会耗费较多时间，真的要打开么？", "", MessageBoxButton.YesNo) == MessageBoxResult.No) {
+                    return;
+                }
+            }
+            foreach (var file in fileList.SelectedItems.Cast<FileInfo>()) {
+                try {
+                    var filename = Environment.CurrentDirectory + @"\library\" + file.UUID + file.Format;
+                    var processStartInfo = new System.Diagnostics.ProcessStartInfo(filename);
+                    var process = System.Diagnostics.Process.Start(processStartInfo);
+                } catch { }
             }
         }
 
@@ -373,26 +334,6 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         /// <summary>
-        /// 文件列表->右键->打开
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void FileList_ContextMenu_Open_Click(object sender, RoutedEventArgs e) {
-            if (fileList.SelectedItems.Count > 10) {
-                if (MessageBox.Show("选择项大于10项，打开可能会耗费较多时间，真的要打开么？", "", MessageBoxButton.YesNo) == MessageBoxResult.No) {
-                    return;
-                }
-            }
-            foreach (var file in fileList.SelectedItems.Cast<FileInfo>()) {
-                try {
-                    var filename = Environment.CurrentDirectory + @"\library\" + file.UUID + file.Format;
-                    var processStartInfo = new System.Diagnostics.ProcessStartInfo(filename);
-                    var process = System.Diagnostics.Process.Start(processStartInfo);
-                } catch { }
-            }
-        }
-
-        /// <summary>
         /// 文件列表->右键->删除
         /// </summary>
         /// <param name="sender"></param>
@@ -406,6 +347,60 @@ namespace Lirui.TagLibrary.Windows {
                     RemoveFile(item);
                     System.IO.File.Delete(Environment.CurrentDirectory + @"\library\" + item.UUID + item.Format);
                 });
+        }
+
+        /// <summary>
+        /// 文件列表->右键->设置标签
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileList_ContextMenu_SetTag_Click(object sender, RoutedEventArgs e) {
+            //var selectedFile = fileList.SelectedItems.Cast<FileInfo>();
+            var file = fileList.SelectedItem as FileInfo;
+
+            var setTagWindow = new SetTag() {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Tags = tags.Where(x => !x.Group.StartsWith("Default - ")).ToList() ?? new List<TagInfo>(),
+                File = file,
+                SelectedTags = mappers
+                               .Where(x => x.FileId == (fileList.SelectedItem as FileInfo).Id)
+                               .Join(tags, x => x.TagId, y => y.Id, (x, y) => y)
+                               .Where(item => !item.Group.StartsWith("Default - "))
+                               .ToList(),
+            };
+            EventHandler<AddingTagEventArgs> eventHandler =
+                (_sender, _e) => {
+                    AddTag(_e.Tag);
+                    var tagWithId = tags
+                        .Where(item => item.Name == _e.Tag.Name && item.Group == _e.Tag.Group)
+                        .First();
+                    if (tagWithId != null) {
+                        setTagWindow.AddTag(tagWithId);
+                    }
+                };
+            setTagWindow.AddingTag += eventHandler;
+            setTagWindow.ShowDialog();
+            setTagWindow.AddingTag -= eventHandler;
+            if (setTagWindow.IsOK) {
+                var oldTags = setTagWindow.SelectedTags.Where(x => x.Id != null).ToList();
+                var newTags = setTagWindow.SelectedTags.Where(x => x.Id == null).ToList();
+                newTags.ForEach(x => AddTag(x));
+                var newTagsWithId = tags.Join(newTags, x => new { x.Name, x.Group }, y => new { y.Name, y.Group }, (x, y) => x);
+                var allSelectedTags = oldTags.Concat(newTagsWithId);
+                var needDelete =
+                    mappers
+                    .Where(item => item.FileId == file.Id)
+                    .Join(tags, x => x.TagId, y => y.Id, (x, y) => y)
+                    .Except(allSelectedTags)
+                    .Where(item => !item.Group.StartsWith("Default - "))
+                    .ToArray();
+
+                AddMapper(file, oldTags.Concat(newTagsWithId).ToArray());
+                RemoveMapper(file, needDelete);
+                TagTree_TagCheckChanged(this, new TagCheckChangedEventArgs(tagTree.SelectedTag.ToArray()));
+
+            }
         }
 
         /// <summary>
@@ -459,18 +454,19 @@ namespace Lirui.TagLibrary.Windows {
                     .ToList()
                     .ForEach(item => (fileList.ItemsSource as BindingList<FileInfo>).Add(item));
             }
+            
         }
 
         /// <summary>
-        /// 窗体Loaded事件
+        /// 事件->窗口加载事件
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e) {
         }
-        
+
         /// <summary>
-        /// Host列表->右键->连接
+        /// 主机列表->右键->连接
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -493,9 +489,9 @@ namespace Lirui.TagLibrary.Windows {
 
             } catch { MessageBox.Show("连接失败"); }
         }
-        
+
         /// <summary>
-        /// 在RemoteWindow中下载完文件后触发的事件
+        /// 事件->远程窗口->文件下载完成
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -585,6 +581,23 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         /// <summary>
+        /// 添加文件
+        /// </summary>
+        /// <param name="fileInfo"></param>
+        /// <returns></returns>
+        private FileInfo AddFile(FileInfo fileInfo) {
+            System.IO.File.Copy(fileInfo.OriginalPath + '\\' + fileInfo.Name, "library\\" + fileInfo.UUID + fileInfo.Format);
+            fileInfo = db.Insertable(fileInfo).ExecuteReturnEntity();
+            //(fileList.ItemsSource as BindingList<FileInfo>).Add(fileInfo);
+            files.Add(fileInfo);
+
+            //添加默认标签
+            AddTag(new TagInfo() { Group = "Default - Format", Name = fileInfo.Format.ToUpper() });
+            AddMapper(fileInfo, tags.Where(x => x.Group == "Default - Format" && x.Name == fileInfo.Format.ToUpper()).ToArray());
+            return fileInfo;
+        }
+
+        /// <summary>
         /// 删除文件
         /// </summary>
         /// <param name="fileId"></param>
@@ -594,7 +607,6 @@ namespace Lirui.TagLibrary.Windows {
             (fileList.ItemsSource as BindingList<FileInfo>).Remove(fileInfo);
         }
 
-        
         /// <summary>
         /// 添加Tag
         /// </summary>
@@ -701,6 +713,5 @@ namespace Lirui.TagLibrary.Windows {
         }
 
         #endregion
-        
     }
 }

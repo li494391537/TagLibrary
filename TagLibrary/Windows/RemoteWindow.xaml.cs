@@ -104,6 +104,8 @@ namespace Lirui.TagLibrary.Windows {
             foreach (var add in needAdd) {
                 (fileListView.ItemsSource as BindingList<FileInfo>).Add(add);
             }
+            
+
         }
     }
 

@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="Lirui.TagLibrary.Windows.MainWindow">
+    <Position X="5" Y="0.5" Width="5" />
+    <TypeIdentifier>
+      <HashCode>AgBAACAIQ2AQABMABAAApggABQQAIIAIQABAigAAAIw=</HashCode>
+      <FileName>Windows\MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.AddFile">
+    <Position X="10.5" Y="0.5" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>AAAACCAAEAAAAAEASAgAAAIAAAAAAEAAAABACABCAgA=</HashCode>
+      <FileName>Windows\AddFile.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.AddTag">
+    <Position X="11" Y="5.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAAAAAAAgAAAAAAAAAAACAAAAACAAACAA=</HashCode>
+      <FileName>Windows\AddTag.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.CopyToFolder">
+    <Position X="0.75" Y="5.75" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAQAAgAAAQAQAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Windows\CopyToFolder.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.RemoteWindow">
+    <Position X="5" Y="9" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAQAQIAAAAAAAAggAGAAAAAAAAABAgAACBAA=</HashCode>
+      <FileName>Windows\RemoteWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.SetTag">
+    <Position X="0.5" Y="0.5" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAACCAAEAAAAAEASAgAAAoAAAAEAEAAAAJACAACAgA=</HashCode>
+      <FileName>Windows\SetTag.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.Windows.Setting">
+    <Position X="0.75" Y="8.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAAAAAAAgAAAAgAAAAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Windows\Setting.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Lirui.TagLibrary.ExtensionCommon.ExtensionInfoAttribute">
+    <Position X="7.75" Y="14.5" Width="4" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lirui.TagLibrary.ExtensionCommon.AbstractExtension">
+    <Position X="2.75" Y="14.5" Width="4.5" />
+    <TypeIdentifier />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 
 namespace Lirui.TagLibrary.Utils {
-    class ExtensionUtil {
+    static class ExtensionUtil {
         public static Dictionary<Assembly, List<string>> Assemblies { get; private set; }
         public static List<KeyValuePair<string, Type>> ExtensionType { get; private set; }
 
