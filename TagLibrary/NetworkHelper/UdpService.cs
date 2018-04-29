@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Timers;
 
 namespace Lirui.TagLibrary.NetworkHelper {
-    class UdpService {
+    static class UdpService {
         public static int HttpPort { get; set; }
         public static int Port => port;
         private static readonly int port = 4456;

@@ -86,10 +86,10 @@ namespace Lirui.TagLibray.Extension {
                     data = GetTextData(buffer);
                     tags.Add(new KeyValuePair<string, string>("乐队\\伴奏", data));
                     break;
-                    //case "TPE3":
-                    //    data = GetTextData(buffer);
-                    //    tags.Add(new KeyValuePair<string, string>("TPE3", data));
-                    //    break;
+                //case "TPE3":
+                //    data = GetTextData(buffer);
+                //    tags.Add(new KeyValuePair<string, string>("TPE3", data));
+                //    break;
                 }
             }
         }
