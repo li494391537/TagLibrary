@@ -12,6 +12,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 
 namespace Lirui.TagLibrary.Windows {
     /// <summary>
@@ -463,6 +464,10 @@ namespace Lirui.TagLibrary.Windows {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e) {
+
+            image.Source = new BitmapImage(new Uri(@"D:\1.png"));
+            fileInfo.Text = "文件大小：265.27 KB\n标签：图片来源: 截图\n          图片比例: ~16:9";
+            taskStatus.Content = "无";
         }
 
         /// <summary>

@@ -118,9 +118,9 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Image Grid.Row="0"/>
+                <Image Grid.Row="0" x:Name="image"/>
                 <Border Grid.Row="1" BorderThickness="0,1,0,0" BorderBrush="#FF828790" SnapsToDevicePixels="true">
-                    <TextBlock Name="test2" />
+                    <TextBlock x:Name="fileInfo" />
                 </Border>
             </Grid>
         </Grid>
@@ -132,6 +132,9 @@
             <Separator/>
             <Label Content="HTTP服务状态: " Width="100" FontSize="12"/>
             <Label x:Name="httpStatus" MinWidth="100" FontSize="12"/>
+            <Separator/>
+            <Label Content="后台任务状态：" Width="100" FontSize="12"/>
+            <Label x:Name="taskStatus" MinWidth="100" FontSize="12"/>
         </StatusBar>
     </Grid>
 </Window>
